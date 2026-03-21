@@ -1,9 +1,9 @@
-const CACHE_NAME = 'gongjiang-v1';
-const ASSETS = ['/', '/index.html'];
+const CACHE_NAME = 'gongjiang-v2';
+const ASSETS = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', ev => {
   self.skipWaiting();
-  ev.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
+  ev.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS).catch(()=>{})));
 });
 
 self.addEventListener('activate', ev => {
@@ -21,11 +21,10 @@ self.addEventListener('fetch', ev => {
       if (cached) return cached;
       return fetch(ev.request).then(resp => {
         if (resp && resp.status === 200) {
-          const clone = resp.clone();
-          caches.open(CACHE_NAME).then(c => c.put(ev.request, clone));
+          caches.open(CACHE_NAME).then(c => c.put(ev.request, resp.clone()));
         }
         return resp;
-      }).catch(() => caches.match('/index.html'));
+      }).catch(() => caches.match('./index.html'));
     })
   );
 });
