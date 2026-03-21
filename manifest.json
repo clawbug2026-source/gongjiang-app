@@ -1,0 +1,39 @@
+{
+  "name": "工匠通",
+  "short_name": "工匠通",
+  "description": "建筑工人智慧用工平台，找工作·签到·日志·信誉评级",
+  "start_url": "/gongjiang-app/",
+  "scope": "/gongjiang-app/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#1a1714",
+  "background_color": "#1a1714",
+  "lang": "zh-CN",
+  "categories": [
+    "business",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "https://clawbug2026-source.github.io/gongjiang-app/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://clawbug2026-source.github.io/gongjiang-app/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://clawbug2026-source.github.io/gongjiang-app/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "工匠通主界面"
+    }
+  ]
+}
