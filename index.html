@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover"/>
+
+<!-- PWA / Install Meta Tags -->
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="工匠通"/>
+<meta name="application-name" content="工匠通"/>
+<meta name="theme-color" content="#1a1714"/>
+<meta name="msapplication-TileColor" content="#1a1714"/>
+<meta name="description" content="建筑工人智慧用工平台"/>
+
+<!-- Apple Touch Icons (inline SVG) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjgwIiBmaWxsPSIjMWExNzE0Ii8+CiAgPHJlY3QgeD0iNDAiIHk9IjQwIiB3aWR0aD0iNDMyIiBoZWlnaHQ9IjQzMiIgcng9IjYwIiBmaWxsPSIjMWExNzE0Ii8+CiAgPHRleHQgeD0iMjU2IiB5PSIzNDAiIGZvbnQtc2l6ZT0iMjYwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZDQ0MjBhIiBmb250LWZhbWlseT0ic2VyaWYiIGZvbnQtd2VpZ2h0PSI5MDAiPuWMoDwvdGV4dD4KICA8cmVjdCB4PSI2MCIgeT0iNDIwIiB3aWR0aD0iMzkyIiBoZWlnaHQ9IjgiIHJ4PSI0IiBmaWxsPSJyZ2JhKDIxMiw2NiwxMCwwLjQpIi8+Cjwvc3ZnPg=="/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjgwIiBmaWxsPSIjMWExNzE0Ii8+CiAgPHJlY3QgeD0iNDAiIHk9IjQwIiB3aWR0aD0iNDMyIiBoZWlnaHQ9IjQzMiIgcng9IjYwIiBmaWxsPSIjMWExNzE0Ii8+CiAgPHRleHQgeD0iMjU2IiB5PSIzNDAiIGZvbnQtc2l6ZT0iMjYwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZDQ0MjBhIiBmb250LWZhbWlseT0ic2VyaWYiIGZvbnQtd2VpZ2h0PSI5MDAiPuWMoDwvdGV4dD4KICA8cmVjdCB4PSI2MCIgeT0iNDIwIiB3aWR0aD0iMzkyIiBoZWlnaHQ9IjgiIHJ4PSI0IiBmaWxsPSJyZ2JhKDIxMiw2NiwxMCwwLjQpIi8+Cjwvc3ZnPg=="/>
+<link rel="manifest" href="/manifest.json"/>
+
+<title>工匠通</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{height:100%;background:#1a1714}
+body{
+  height:100%;background:#1a1714;
+  overscroll-behavior:none;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-touch-callout:none;
+}
+#root{height:100%}
+
+/* SPLASH */
+#splash{
+  position:fixed;inset:0;
+  background:linear-gradient(160deg,#1a1714 0%,#261e18 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:9999;transition:opacity 0.35s ease;
+}
+.sp-logo{
+  font-size:64px;font-weight:900;color:#fff;
+  letter-spacing:-2px;
+  font-family:'PingFang SC','Noto Sans SC','Hiragino Sans GB',sans-serif;
+}
+.sp-logo b{color:#d4420a}
+.sp-sub{
+  font-size:13px;color:rgba(255,255,255,0.4);
+  margin-top:8px;letter-spacing:3px;
+  font-family:sans-serif;
+}
+.sp-line{
+  width:48px;height:2px;background:rgba(212,66,10,0.6);
+  border-radius:1px;margin-top:32px;
+}
+.sp-dots{display:flex;gap:8px;margin-top:20px}
+.sp-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:rgba(255,255,255,0.15);
+  animation:bk 1.4s infinite;
+}
+.sp-dot:nth-child(2){animation-delay:.2s}
+.sp-dot:nth-child(3){animation-delay:.4s}
+@keyframes bk{
+  0%,80%,100%{background:rgba(255,255,255,0.15)}
+  40%{background:#d4420a}
+}
+.sp-ver{
+  font-size:10px;color:rgba(255,255,255,0.15);
+  margin-top:40px;font-family:monospace;letter-spacing:1px;
+}
+
+/* INSTALL BANNER */
+#install-banner{
+  display:none;
+  position:fixed;bottom:72px;left:16px;right:16px;
+  background:#fff;border-radius:14px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.2);
+  padding:14px 16px;z-index:100;
+  flex-direction:row;align-items:center;gap:12px;
+  border:1px solid rgba(0,0,0,0.06);
+  animation:slideUp 0.3s ease;
+}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+#install-banner.show{display:flex}
+.ib-icon{font-size:32px;flex-shrink:0}
+.ib-text{flex:1}
+.ib-title{font-size:13px;font-weight:700;color:#1a1714;font-family:'PingFang SC',sans-serif}
+.ib-sub{font-size:11px;color:#7a7267;margin-top:2px;font-family:sans-serif;line-height:1.4}
+.ib-btns{display:flex;flex-direction:column;gap:5px;flex-shrink:0}
+.ib-ok{background:#d4420a;color:#fff;border:none;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:sans-serif}
+.ib-no{background:none;color:#7a7267;border:none;padding:4px;font-size:11px;cursor:pointer;font-family:sans-serif}
+
+/* ERROR */
+#err{display:none;position:fixed;inset:0;background:#fff;padding:20px;font-family:monospace;font-size:11px;white-space:pre-wrap;overflow:auto;z-index:99999;color:#d4420a}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="sp-logo">工<b>匠</b>通</div>
+  <div class="sp-sub">建筑工人智慧用工平台</div>
+  <div class="sp-line"></div>
+  <div class="sp-dots">
+    <div class="sp-dot"></div>
+    <div class="sp-dot"></div>
+    <div class="sp-dot"></div>
+  </div>
+  <div class="sp-ver">v3.0 · WorkerPlatform</div>
+</div>
+
+<!-- Install Banner -->
+<div id="install-banner">
+  <div class="ib-icon">📲</div>
+  <div class="ib-text">
+    <div class="ib-title">安装工匠通 App</div>
+    <div class="ib-sub">添加到主屏幕，像原生App一样使用</div>
+  </div>
+  <div class="ib-btns">
+    <button class="ib-ok" id="install-btn">立即安装</button>
+    <button class="ib-no" id="install-no">以后再说</button>
+  </div>
+</div>
+
+<div id="root"></div>
+<div id="err"></div>
+
+<script>
+// === ERROR HANDLER ===
+window.onerror = function(msg,src,line,col,err) {
+  document.getElementById('err').style.display='block';
+  document.getElementById('err').textContent='错误: '+msg+'\n行: '+line+'\n'+(err&&err.stack||'');
+  var s=document.getElementById('splash');
+  if(s) s.style.display='none';
+};
+
+// === SERVICE WORKER ===
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+
+// === INSTALL PROMPT ===
+var deferredPrompt;
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  setTimeout(function(){
+    document.getElementById('install-banner').classList.add('show');
+  }, 3000);
+});
+document.getElementById('install-btn').addEventListener('click', function() {
+  document.getElementById('install-banner').classList.remove('show');
+  if(deferredPrompt) { deferredPrompt.prompt(); deferredPrompt=null; }
+});
+document.getElementById('install-no').addEventListener('click', function() {
+  document.getElementById('install-banner').classList.remove('show');
+});
+
+// iOS install hint
+var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.navigator.standalone;
+if(isIos) {
+  setTimeout(function(){
+    var b = document.getElementById('install-banner');
+    b.querySelector('.ib-title').textContent = '安装工匠通到主屏幕';
+    b.querySelector('.ib-sub').textContent = '点击Safari底部 分享按钮 → "添加到主屏幕"';
+    b.querySelector('.ib-ok').style.display = 'none';
+    b.classList.add('show');
+  }, 3000);
+}
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+
+<script>
+
+'use strict';
+
+const e = React.createElement;
+const { useState, useEffect, useRef } = React;
+
+/* ═══ CONSTANTS ═══ */
+const JOB_TYPES = ["水工","电工","水泥工","窗户铝合金","木工","Carpenter","Plaster","油漆工","搬运工","杂工"];
+const CITIES_LIST = ["悉尼","墨尔本","布里斯班","珀斯","阿德莱德","堪培拉","上海","北京","广州","深圳"];
+const ZC = ["#d4420a","#1a6b3c","#1a4a8c","#8b5cf6","#d97706","#0891b2"];
+
+const JOBS_DB = [
+  {id:1,company:"Pacific Build Group",city:"悉尼",types:["电工","水工"],payRate:45,payUnit:"时",payDay:"周结",rating:4.8,reviews:234,tags:["急招","长期"],desc:"大型商业综合体项目，需要有商业电气经验的电工。"},
+  {id:2,company:"SunCity Construction",city:"墨尔本",types:["木工","Carpenter"],payRate:42,payUnit:"时",payDay:"两周结",rating:4.6,reviews:98,tags:["包午餐","住宿可"],desc:"高端住宅项目，需精细木工。"},
+  {id:3,company:"ProPaint Melbourne",city:"墨尔本",types:["油漆工","Plaster"],payRate:38,payUnit:"时",payDay:"周结",rating:4.3,reviews:67,tags:["灵活排班"],desc:"室内装修油漆及批荡施工。"},
+  {id:4,company:"Quick Move Logistics",city:"悉尼",types:["搬运工","杂工"],payRate:28,payUnit:"时",payDay:"日结",rating:3.9,reviews:45,tags:["日结","无需经验"],desc:"搬运及杂工，体力好即可上岗。"},
+  {id:5,company:"BuildRight Perth",city:"珀斯",types:["水泥工","杂工"],payRate:35,payUnit:"时",payDay:"周结",rating:4.4,reviews:112,tags:["急招","长期"],desc:"住宅开发项目水泥施工。"},
+  {id:6,company:"AlumFrame Systems",city:"布里斯班",types:["窗户铝合金"],payRate:40,payUnit:"时",payDay:"两周结",rating:4.5,reviews:78,tags:["技术工种"],desc:"铝合金门窗安装，需有相关施工经验。"},
+  {id:7,company:"Metro Plumbing Co",city:"悉尼",types:["水工"],payRate:50,payUnit:"时",payDay:"周结",rating:4.7,reviews:189,tags:["高薪","持证优先"],desc:"商业及住宅水管工程，需持有水管工资质证书。"},
+];
+
+const DEFAULT_WORKER = {
+  name:"张建国", gender:"男", age:"35", phone:"0412-888-888", email:"zhang@email.com",
+  currentCity:"悉尼", workCities:["悉尼","墨尔本"],
+  types:["电工","水工"], experience:8, payExpect:45, payUnit:"时",
+  hasVehicle:true, tools:"电钻、砂轮机",
+  certDesc:"白卡（White Card）、电工证",
+};
+const DEFAULT_COMPANY = {
+  name:"Pacific Build Group", cities:["悉尼"], headcount:"50-200人",
+  payDay:"周结", types:["电工","木工","Carpenter"], maxPay:55, minExp:2,
+};
+const WORKER_DIMS = [
+  {key:"efficiency",label:"工作效率",icon:"⚡"},
+  {key:"attitude",label:"个人素养",icon:"🎯"},
+  {key:"reliability",label:"靠谱程度",icon:"🔒"},
+  {key:"skill",label:"技能熟练度",icon:"🔧"},
+];
+const COMPANY_DIMS = [
+  {key:"payPunctual",label:"薪资准时",icon:"💰"},
+  {key:"stability",label:"工作稳定",icon:"📋"},
+  {key:"environment",label:"工作环境",icon:"🏗️"},
+  {key:"management",label:"管理规范",icon:"📊"},
+];
+const ASSIGNED_TODAY = [
+  {id:1,name:"三楼外墙防水层施工",zone:"A区·外立面",color:ZC[0],req:"每日完成20㎡，防水标准验收"},
+  {id:2,name:"二楼走廊钢筋绑扎",zone:"B区·内部结构",color:ZC[1],req:"完成1个结构节点，间距≤200mm"},
+];
+const CO_TASKS_INIT = [
+  {id:1,name:"三楼外墙防水层施工",zone:"A区·外立面",quota:"每日完成20㎡",color:ZC[0],assignTo:"张建国",dueTime:"18:00"},
+  {id:2,name:"二楼走廊钢筋绑扎",zone:"B区·内部结构",quota:"每日完成1个节点",color:ZC[1],assignTo:"刘大明",dueTime:"17:30"},
+];
+const WORKER_LOGS_INIT = [
+  {id:1,worker:"张建国",color:"#d4420a",date:"2024-03-21",content:"完成A区防水层铺设22㎡，进度超预期。质检验收通过。",
+   tasks:[{name:"三楼外墙防水层施工",done:true},{name:"二楼走廊钢筋绑扎",done:false}],hours:"10.7",photos:["🧱","📋"]},
+  {id:2,worker:"刘大明",color:"#1a6b3c",date:"2024-03-21",content:"完成B区钢筋节点绑扎。材料等待40分钟，安全检查通过。",
+   tasks:[{name:"二楼走廊钢筋绑扎",done:true}],hours:"10.2",photos:["🔩"]},
+  {id:3,worker:"王建华",color:"#1a4a8c",date:"2024-03-21",content:"完成12个焊接点位，未达标。焊机故障2小时。",
+   tasks:[{name:"地下室焊接作业",done:false}],hours:"9.5",photos:[]},
+];
+const WORKERS_RATED = [
+  {id:"w1",name:"张建国",type:"电工·8年",color:"#d4420a",overall:4.8,reviews:126,badges:["准时达人","技艺精湛"],review:"工作认真负责，焊接技术一流！"},
+  {id:"w2",name:"刘大明",type:"钢筋工·5年",color:"#1a6b3c",overall:4.5,reviews:89,badges:["效率之星"],review:"技术过硬，配合度高。"},
+];
+const COMPANIES_RATED = [
+  {id:"c1",name:"Pacific Build Group",type:"建筑总承包·50-200人",color:"#1a4a8c",overall:4.8,reviews:234,weeksPassed:1,badges:["按时结薪","信誉企业"],review:"薪资周结从不拖欠，行业良心！"},
+  {id:"c2",name:"SunCity Construction",type:"装饰装修·20-50人",color:"#d4420a",overall:4.3,reviews:98,weeksPassed:8,badges:["准时结薪"],review:"整体不错，薪酬兑现及时。"},
+];
+const TRAJ_DATA = [
+  {time:"07:28",loc:"住所·Burwood St",note:"出发",color:ZC[1]},
+  {time:"08:10",loc:"项目工地·A栋门口",note:"✅ 打卡上班",color:ZC[0]},
+  {time:"12:00",loc:"工地食堂·B区",note:"午休",color:ZC[3]},
+  {time:"17:52",loc:"项目工地·A栋门口",note:"✅ 打卡下班",color:ZC[0]},
+];
+
+/* ═══ MATCH ALGO ═══ */
+function calcMatch(job, wp) {
+  if(!wp.types||!wp.types.length) return {total:0, dims:{}};
+  const overlap = job.types.filter(t=>wp.types.includes(t));
+  const typeScore = overlap.length>0 ? Math.min(35,Math.round(overlap.length/job.types.length*35)) : 0;
+  const cityOk = (wp.workCities||[]).includes(job.city)||(wp.currentCity===job.city);
+  const cityScore = cityOk?25:0;
+  const expScore = (wp.experience||0)>=3?20:(wp.experience||0)>=1?12:5;
+  const payScore = job.payRate>=(wp.payExpect||0)?15:job.payRate>=(wp.payExpect||0)-8?10:5;
+  const vehicleScore = wp.hasVehicle?5:3;
+  const total = typeScore+cityScore+expScore+payScore+vehicleScore;
+  return {
+    total, overlap,
+    dims:{
+      type:{score:typeScore,max:35,label:"工种吻合",match:typeScore>=28},
+      city:{score:cityScore,max:25,label:"城市匹配",match:cityScore>=20},
+      exp:{score:expScore,max:20,label:"经验满足",match:expScore>=16},
+      pay:{score:payScore,max:15,label:"薪资匹配",match:payScore>=12},
+      vehicle:{score:vehicleScore,max:5,label:"有交通工具",match:wp.hasVehicle},
+    }
+  };
+}
+function gsc(s){return s>=80?{h:"#1a6b3c",cls:"high"}:s>=60?{h:"#1a4a8c",cls:"mid"}:{h:"#f5a623",cls:"low"};}
+
+/* ═══ TINY HELPERS ═══ */
+function div(cls, children, extra) {
+  return e('div', Object.assign({className:cls||''}, extra||{}), ...(Array.isArray(children)?children:[children]));
+}
+function txt(tag, cls, content, extra) {
+  return e(tag, Object.assign({className:cls||''}, extra||{}), content);
+}
+
+/* ═══ CSS ═══ */
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=DM+Mono:wght@500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f3ee;--sur:#fff;--s2:#faf9f6;--s3:#f0ece4;
+  --bd:#e8e4dc;--bd2:#d4cfc4;--tx:#1a1714;--sub:#7a7267;
+  --r:#d4420a;--g:#1a6b3c;--b:#1a4a8c;--y:#f5a623;
+  --sh:0 2px 12px rgba(0,0,0,0.08);
+}
+body{background:var(--bg);font-family:'Noto Sans SC',sans-serif;color:var(--tx)}
+input,textarea,select,button{font-family:'Noto Sans SC',sans-serif}
+button{cursor:pointer}
+.app{max-width:430px;margin:0 auto;background:var(--bg);min-height:100vh;display:flex;flex-direction:column;position:relative}
+.topbar{background:var(--sur);border-bottom:1px solid var(--bd);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.logo{font-size:19px;font-weight:900;letter-spacing:-0.5px;color:var(--tx)}
+.logo-r{color:var(--r)}
+.logo-sub{font-size:10px;color:var(--sub);margin-top:1px;letter-spacing:0.5px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.role-pill{font-size:10px;padding:4px 10px;border-radius:10px;font-weight:700;border:none}
+.rp-w{background:#fff3ee;color:var(--r)}
+.rp-c{background:#e8f0ff;color:var(--b)}
+.avatar{width:32px;height:32px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:none}
+.bottom-nav{position:sticky;bottom:0;background:var(--sur);border-top:1px solid var(--bd);display:grid;grid-template-columns:repeat(5,1fr);z-index:50}
+.nb{display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 4px 8px;background:none;border:none;color:var(--sub);font-size:9px;transition:color 0.2s}
+.nb.on{color:var(--r)}
+.nb-icon{font-size:19px;line-height:1}
+.page{flex:1;overflow-y:auto;padding-bottom:4px}
+.card{background:var(--sur);border-radius:12px;border:1px solid var(--bd);overflow:hidden;box-shadow:var(--sh)}
+/* HERO */
+.hero{padding:18px 16px 14px;position:relative;overflow:hidden;color:#fff;background:#1a1714}
+.hero-r{position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;opacity:0.3}
+.hero h2{font-size:20px;font-weight:900;line-height:1.25;position:relative}
+.hero-em{color:#f5a623}
+.hero p{font-size:11px;opacity:0.6;margin-top:5px;position:relative}
+/* MATCH */
+.prof-banner{margin:10px 16px 0;background:linear-gradient(135deg,rgba(26,74,140,0.05),rgba(26,107,60,0.05));border:1px solid rgba(26,74,140,0.12);border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:9px}
+.pb-av{width:34px;height:34px;border-radius:50%;background:var(--b);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0}
+.pb-info{flex:1}
+.pb-name{font-size:12px;font-weight:700}
+.pb-meta{font-size:10px;color:var(--sub);margin-top:2px}
+.pb-chips{display:flex;gap:3px;margin-top:4px;flex-wrap:wrap}
+.pb-chip{font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(26,74,140,0.1);color:var(--b);font-weight:600}
+.pb-edit{font-size:10px;color:var(--b);background:none;border:none;text-decoration:underline;flex-shrink:0}
+.algo-strip{margin:8px 16px 0;background:var(--sur);border:1px solid var(--bd);border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px}
+.algo-txt{flex:1;font-size:11px;color:var(--sub);line-height:1.4}
+.algo-btn{background:var(--b);color:#fff;border:none;padding:5px 11px;border-radius:6px;font-size:11px;font-weight:700}
+.sort-row{display:flex;gap:6px;padding:10px 16px 6px;overflow-x:auto;scrollbar-width:none;align-items:center}
+.sort-row::-webkit-scrollbar{display:none}
+.sc{white-space:nowrap;padding:5px 11px;border-radius:18px;border:1px solid var(--bd2);background:var(--sur);font-size:11px;color:var(--sub);cursor:pointer;flex-shrink:0;transition:all 0.2s}
+.sc.on{background:var(--tx);border-color:var(--tx);color:#fff}
+.ai-label{margin:6px 16px 6px;display:flex;align-items:center;gap:7px}
+.ai-badge{font-size:10px;font-weight:900;padding:2px 9px;border-radius:16px;background:linear-gradient(135deg,#f5a623,#d4420a);color:#fff}
+.ai-desc{font-size:10px;color:var(--sub)}
+/* JOB LIST */
+.li{padding:13px 15px;border-bottom:1px solid var(--bd);cursor:pointer;transition:background 0.15s;position:relative}
+.li:last-child{border-bottom:none}
+.li:hover,.li:active{background:var(--s2)}
+.li-top{display:flex;justify-content:space-between;margin-bottom:3px;padding-right:28px}
+.li-company{font-size:14px;font-weight:700}
+.li-pay{font-size:14px;font-weight:700;color:var(--r)}
+.li-sub{font-size:11px;color:var(--sub);margin-bottom:6px}
+.tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:10px;padding:2px 7px;border-radius:3px;background:var(--s3);color:var(--sub)}
+.tag-r{background:#fff3ee;color:var(--r)}
+.tag-g{background:#e8f5ee;color:var(--g)}
+.tag-b{background:#e8f0ff;color:var(--b)}
+.rank{position:absolute;top:13px;right:14px;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900}
+.rk1{background:linear-gradient(135deg,#f5a623,#e88c0a);color:#fff}
+.rk2{background:#e8e8e8;color:#666}.rk3{background:#e0d0c0;color:#8a6040}.rkn{background:var(--s3);color:var(--sub)}
+/* SCORE BAR */
+.ms-row{display:flex;align-items:center;gap:6px;margin-top:8px}
+.ms-lbl{font-size:10px;color:var(--sub);white-space:nowrap}
+.ms-bar{flex:1;height:5px;background:var(--bd);border-radius:3px;overflow:hidden}
+.ms-fill{height:100%;border-radius:3px}
+.ms-num{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;min-width:30px;text-align:right}
+.num-high{color:var(--g)}.num-mid{color:var(--b)}.num-low{color:var(--y)}
+.fill-h{background:linear-gradient(90deg,#1a6b3c,#2ecc71)}
+.fill-m{background:linear-gradient(90deg,#1a4a8c,#4a9eff)}
+.fill-l{background:linear-gradient(90deg,#f5a623,#ffc107)}
+.dims{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px}
+.dim{display:flex;align-items:center;gap:4px;font-size:10px}
+.dim-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+/* MODAL/SHEET */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:200;display:flex;align-items:flex-end}
+.sheet{background:var(--sur);border-radius:18px 18px 0 0;width:100%;max-height:90vh;overflow-y:auto;animation:su 0.25s ease}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sh-handle{width:36px;height:4px;background:var(--bd2);border-radius:2px;margin:11px auto 0}
+.sh-hd{padding:14px 16px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:flex-start}
+.sh-title{font-size:16px;font-weight:900}
+.sh-sub{font-size:11px;color:var(--sub);margin-top:3px}
+.sh-close{background:var(--s3);border:none;width:26px;height:26px;border-radius:50%;font-size:13px;color:var(--sub)}
+.sh-sec{padding:12px 16px;border-bottom:1px solid var(--bd)}
+.sh-sec:last-child{border-bottom:none}
+.sh-sec-title{font-size:10px;font-weight:700;letter-spacing:1px;color:var(--sub);margin-bottom:9px;text-transform:uppercase}
+/* SCORE RING */
+.ring-wrap{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.ring{position:relative;width:64px;height:64px;flex-shrink:0}
+.ring-svg{transform:rotate(-90deg)}
+.ring-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-num{font-family:'DM Mono',monospace;font-size:17px;font-weight:700;line-height:1}
+.ring-lbl{font-size:8px;color:var(--sub);margin-top:2px}
+.ring-reason h4{font-size:12px;font-weight:700;margin-bottom:3px}
+.ring-reason p{font-size:11px;color:var(--sub);line-height:1.5}
+.dim-bars{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.db-hd{display:flex;justify-content:space-between;margin-bottom:3px}
+.db-name{font-size:11px;color:var(--sub)}.db-val{font-size:11px;font-weight:700}
+.db-bar{height:5px;background:var(--bd);border-radius:3px;overflow:hidden}
+.db-fill{height:100%;border-radius:3px}
+.btn-row{display:flex;gap:8px;padding:14px 16px}
+.btn{flex:1;padding:12px;border-radius:10px;border:none;font-size:13px;font-weight:700}
+.btn-p{background:var(--g);color:#fff}
+.btn-s{background:var(--s3);color:var(--tx)}
+/* SWITCH */
+.sw{display:flex;background:var(--s3);border-radius:9px;padding:3px;margin:12px 16px 0}
+.sw-btn{flex:1;padding:9px 6px;border:none;background:none;border-radius:7px;font-size:12px;font-weight:700;color:var(--sub);transition:all 0.2s}
+.sw-btn.on{background:var(--sur);color:var(--tx);box-shadow:0 1px 5px rgba(0,0,0,0.1)}
+/* CHECKIN */
+.map-box{height:200px;background:linear-gradient(160deg,#c8e0c8,#a8c8a8);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.pulse-dot{width:14px;height:14px;border-radius:50%;background:var(--r);position:relative;z-index:2}
+.pulse-ring{position:absolute;border-radius:50%;background:rgba(212,66,10,0.15);animation:pu 2s infinite}
+@keyframes pu{0%{opacity:0.8;transform:translate(-50%,-50%) scale(0.8)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.4)}}
+.map-badge{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.72);color:#fff;font-size:10px;padding:4px 12px;border-radius:18px;white-space:nowrap}
+.ci-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--bd)}
+.ci-row:last-child{border-bottom:none}
+.ci-lbl{font-size:12px;color:var(--sub)}.ci-val{font-size:12px;font-weight:700}
+.ci-g{color:var(--g)}.ci-r{color:var(--r)}
+.ck-btn{margin:0 16px 14px;width:calc(100% - 32px);padding:13px;border-radius:10px;border:none;font-size:15px;font-weight:700;letter-spacing:0.5px}
+.ck-in{background:var(--g);color:#fff}
+.ck-out{background:var(--r);color:#fff}
+.excel-strip{margin:0 16px 12px;background:linear-gradient(135deg,rgba(26,107,60,0.05),rgba(26,74,140,0.05));border:1px solid rgba(26,107,60,0.18);border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:9px}
+.traj-item{display:flex;gap:10px;padding:6px 0;position:relative}
+.traj-item:not(:last-child)::before{content:'';position:absolute;left:7px;top:18px;bottom:-6px;width:1px;background:var(--bd)}
+.traj-dot{width:15px;height:15px;border-radius:50%;border:2px solid var(--sur);flex-shrink:0;margin-top:1px;z-index:1}
+.traj-time{font-family:'DM Mono',monospace;font-size:11px;font-weight:700}
+.traj-loc{font-size:12px;margin-top:1px}
+.traj-note{font-size:10px;color:var(--sub);margin-top:1px}
+/* DIARY */
+.ttb{margin:10px 16px 0;border-radius:11px;overflow:hidden;border:1px solid var(--bd);box-shadow:var(--sh)}
+.ttb-hd{background:var(--b);color:#fff;padding:9px 13px;display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:700}
+.ttb-hd-d{font-size:10px;opacity:0.75;font-family:'DM Mono',monospace}
+.t-row{display:flex;align-items:flex-start;gap:7px;padding:8px 0;border-bottom:1px solid var(--bd)}
+.t-row:last-child{border-bottom:none}
+.t-ck{width:17px;height:17px;border-radius:4px;border:2px solid var(--bd2);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;background:var(--sur);transition:all 0.15s}
+.t-ck.done{background:var(--g);border-color:var(--g);color:#fff}
+.t-name{font-size:12px;font-weight:600;transition:all 0.2s}
+.t-name.done{text-decoration:line-through;color:var(--sub)}
+.t-zone{display:inline-block;font-size:9px;padding:2px 6px;border-radius:3px;font-weight:700;margin-top:2px}
+.t-req{font-size:10px;color:var(--sub);margin-top:2px;line-height:1.4}
+.prog-row{padding:9px 13px;background:rgba(26,74,140,0.04);border-top:1px solid var(--bd);display:flex;align-items:center;gap:7px}
+.prog-lbl{font-size:10px;color:var(--sub);white-space:nowrap}
+.prog-bar{flex:1;height:4px;background:var(--bd);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:var(--g);border-radius:2px;transition:width 0.4s}
+.prog-num{font-size:10px;font-weight:700;color:var(--g);font-family:'DM Mono',monospace}
+.compose{margin:10px 16px 0;background:var(--sur);border-radius:11px;border:1px solid var(--bd);overflow:hidden;box-shadow:var(--sh)}
+.compose-hd{padding:11px 13px 9px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bd)}
+.compose-title{font-size:13px;font-weight:700}
+.compose-loc{font-size:10px;color:var(--sub)}
+.dta{width:100%;min-height:80px;padding:9px 11px;background:var(--s2);border:1px solid var(--bd);border-radius:7px;resize:none;outline:none;font-size:12px;line-height:1.6;color:var(--tx);transition:border-color 0.2s}
+.dta:focus{border-color:var(--b)}
+.photo-row{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:3px;margin-top:9px}
+.photo-row::-webkit-scrollbar{display:none}
+.ph-add{width:62px;height:62px;border-radius:7px;border:2px dashed var(--bd2);background:var(--s2);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;color:var(--sub);cursor:pointer;flex-shrink:0}
+.ph-item{width:62px;height:62px;border-radius:7px;border:1px solid var(--bd);background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;position:relative;flex-shrink:0}
+.ph-del{position:absolute;top:-5px;right:-5px;width:17px;height:17px;border-radius:50%;background:var(--r);color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--sur);z-index:1}
+.meta-row{display:flex;gap:7px;margin-top:9px;align-items:center}
+.meta-sel{flex:1;padding:7px 9px;background:var(--s2);border:1px solid var(--bd);border-radius:6px;font-size:11px;color:var(--tx);outline:none}
+.hrs-in{width:58px;padding:7px 5px;background:var(--s2);border:1px solid var(--bd);border-radius:6px;font-size:11px;color:var(--tx);outline:none;text-align:center}
+.tc-lbl{font-size:10px;font-weight:700;color:var(--sub);margin:9px 0 5px;letter-spacing:0.5px}
+.tc-item{display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:4px}
+.tc-box{width:15px;height:15px;border-radius:4px;border:2px solid var(--bd2);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--sur);font-size:8px}
+.tc-box.on{background:var(--g);border-color:var(--g);color:#fff}
+.compose-foot{display:flex;justify-content:flex-end;gap:7px;padding:9px 13px 13px;border-top:1px solid var(--bd);margin-top:9px}
+.btn-sub{background:var(--b);color:#fff;border:none;padding:8px 20px;border-radius:7px;font-size:12px;font-weight:700}
+.btn-draft{background:var(--s3);color:var(--sub);border:none;padding:8px 14px;border-radius:7px;font-size:12px}
+.dl-hd{padding:12px 16px 7px;display:flex;justify-content:space-between}
+.dl-hd-t{font-size:11px;font-weight:700;color:var(--sub);letter-spacing:1px;text-transform:uppercase}
+.de{padding:13px 15px;border-bottom:1px solid var(--bd)}
+.de:last-child{border-bottom:none}
+.de-hd{display:flex;justify-content:space-between;margin-bottom:5px}
+.de-date{font-size:10px;color:var(--sub);font-family:'DM Mono',monospace}
+.de-site{font-size:10px;font-weight:700;color:var(--b)}
+.de-txt{font-size:12px;line-height:1.6}
+.de-photos{display:flex;gap:5px;margin-top:7px}
+.de-p{width:56px;height:56px;border-radius:7px;border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:24px;background:var(--s3);cursor:pointer}
+.de-foot{display:flex;gap:8px;margin-top:6px;align-items:center;flex-wrap:wrap}
+.de-stat{font-size:10px;color:var(--sub)}
+.de-badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700}
+.b-all{background:#e8f5ee;color:var(--g)}.b-part{background:#fff8e0;color:#8a6000}.b-none{background:#fff0ec;color:var(--r)}
+/* COMPANY DIARY HEADER */
+.co-hd{background:linear-gradient(135deg,#1a1714,#261e18);color:#fff;padding:16px;position:relative;overflow:hidden}
+.co-hd-deco{position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(26,74,140,0.35)}
+.co-hd-title{font-size:17px;font-weight:900;position:relative}
+.co-hd-sub{font-size:11px;color:rgba(255,255,255,0.45);margin-top:3px;position:relative}
+.co-stats{display:flex;margin-top:12px;background:rgba(255,255,255,0.06);border-radius:7px;overflow:hidden}
+.co-stat{flex:1;text-align:center;padding:8px 0;border-right:1px solid rgba(255,255,255,0.07)}
+.co-stat:last-child{border-right:none}
+.co-sn{font-size:16px;font-weight:900;font-family:'DM Mono',monospace;color:var(--y)}
+.co-sl{font-size:9px;color:rgba(255,255,255,0.4);margin-top:1px}
+.wtabs{display:flex;gap:5px;padding:9px 16px;overflow-x:auto;scrollbar-width:none}
+.wtabs::-webkit-scrollbar{display:none}
+.wtab{flex-shrink:0;padding:5px 12px;border-radius:18px;border:1px solid var(--bd2);background:var(--sur);font-size:11px;font-weight:600;color:var(--sub);cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:4px}
+.wtab.on{background:var(--b);border-color:var(--b);color:#fff}
+.wdot{width:6px;height:6px;border-radius:50%}
+.plan-sec{padding:0 16px 14px}
+.ps-hd{font-size:11px;font-weight:700;color:var(--sub);letter-spacing:1px;text-transform:uppercase;margin:13px 0 9px}
+.add-btn{display:flex;align-items:center;gap:5px;background:var(--sur);border:2px dashed var(--bd2);border-radius:9px;padding:10px 14px;width:100%;font-size:12px;font-weight:600;color:var(--sub);margin-bottom:10px}
+.atf{background:var(--sur);border-radius:10px;border:1px solid var(--bd);padding:11px;margin-bottom:10px;box-shadow:var(--sh)}
+.atf-title{font-size:12px;font-weight:700;margin-bottom:9px}
+.atf-in{width:100%;padding:7px 9px;background:var(--s2);border:1px solid var(--bd);border-radius:6px;font-size:12px;color:var(--tx);outline:none;margin-bottom:6px;display:block}
+.atf-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
+.atf-sel{width:100%;padding:7px 9px;background:var(--s2);border:1px solid var(--bd);border-radius:6px;font-size:11px;color:var(--tx);outline:none}
+.atf-ta{width:100%;padding:7px 9px;background:var(--s2);border:1px solid var(--bd);border-radius:6px;font-size:11px;color:var(--tx);outline:none;resize:none;min-height:50px;display:block}
+.atf-foot{display:flex;justify-content:flex-end;gap:6px;margin-top:7px}
+.atf-ok{background:var(--g);color:#fff;border:none;padding:7px 16px;border-radius:6px;font-size:12px;font-weight:700}
+.atf-cancel{background:var(--s3);color:var(--sub);border:none;padding:7px 12px;border-radius:6px;font-size:12px}
+.ptask{background:var(--sur);border-radius:9px;border:1px solid var(--bd);margin-bottom:7px;overflow:hidden;box-shadow:var(--sh)}
+.ptask-hd{padding:9px 11px;display:flex;align-items:flex-start;gap:8px}
+.ptask-bar{width:3px;border-radius:2px;align-self:stretch;flex-shrink:0;min-height:18px}
+.ptask-info{flex:1}
+.ptask-name{font-size:13px;font-weight:700}
+.ptask-zone{font-size:10px;font-weight:700;margin-top:2px}
+.ptask-std{font-size:10px;color:var(--sub);margin-top:2px;line-height:1.4}
+.ptask-acts{display:flex;gap:4px;flex-shrink:0}
+.ptask-btn{padding:4px 9px;border-radius:5px;border:none;font-size:10px;font-weight:600;cursor:pointer}
+.ptask-edit{background:var(--s3);color:var(--sub)}
+.ptask-del{background:#fff0ec;color:var(--r)}
+.ptask-ft{padding:7px 11px;background:rgba(26,74,140,0.03);border-top:1px solid var(--bd);display:flex;align-items:center;gap:7px;font-size:10px}
+.wlog{background:var(--sur);border-radius:9px;border:1px solid var(--bd);margin-bottom:7px;overflow:hidden;box-shadow:var(--sh)}
+.wlog-hd{padding:9px 11px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--bd)}
+.wlog-av{width:32px;height:32px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
+.wlog-name{font-size:12px;font-weight:700;flex:1}
+.wlog-date{font-size:9px;color:var(--sub);font-family:'DM Mono',monospace}
+.wlog-st{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:700}
+.ws-ok{background:#e8f5ee;color:var(--g)}.ws-pt{background:#fff8e0;color:#8a6000}.ws-no{background:#fff0ec;color:var(--r)}
+.wlog-body{padding:9px 11px}
+.wlog-txt{font-size:11px;color:var(--sub);line-height:1.5}
+.wlog-tasks{display:flex;flex-direction:column;gap:3px;margin-top:7px}
+.wlog-ti{display:flex;align-items:center;gap:5px;font-size:11px}
+.wlog-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.wlog-ft{padding:7px 11px;background:var(--s2);border-top:1px solid var(--bd);display:flex;gap:9px;align-items:center}
+.wlog-stat{font-size:10px;color:var(--sub)}
+.wlog-cmt{margin-left:auto;font-size:10px;color:var(--b);background:none;border:none;font-weight:700}
+/* RATING */
+.rt-hero{background:linear-gradient(135deg,#1a1714,#261e18);color:#fff;padding:18px 16px 14px;position:relative;overflow:hidden}
+.rc{padding:13px 15px;border-bottom:1px solid var(--bd)}
+.rc:last-child{border-bottom:none}
+.rc-hd{display:flex;gap:10px;align-items:flex-start}
+.rc-av{width:40px;height:40px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#fff}
+.rc-info{flex:1}.rc-name{font-size:13px;font-weight:700}
+.rc-desc{font-size:11px;color:var(--sub);margin-top:2px}
+.rc-score{font-family:'DM Mono',monospace;font-size:15px;font-weight:700}
+.rc-badges{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+.badge{font-size:10px;padding:2px 7px;border-radius:3px;font-weight:600}
+.bg-gold{background:#fff8e0;color:#b07800}.bg-b{background:#e8f0ff;color:var(--b)}
+.bg-g{background:#e8f5ee;color:var(--g)}.bg-r{background:#fff0ec;color:var(--r)}
+.rc-review{margin-top:7px;font-size:11px;color:var(--sub);line-height:1.5;padding-top:7px;border-top:1px solid var(--bd)}
+.rf-body{padding:12px 16px}
+.rf-dim{margin-bottom:13px}
+.rf-lbl{font-size:11px;font-weight:700;margin-bottom:6px}
+.star-row{display:flex;gap:3px;align-items:center}
+.star-btn{background:none;border:none;padding:1px;cursor:pointer;font-size:22px;transition:transform 0.1s}
+.star-btn:hover{transform:scale(1.2)}
+.rf-overall{margin-top:10px;padding-top:10px;border-top:1px solid var(--bd)}
+.rf-ta{width:100%;padding:8px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:7px;font-size:11px;color:var(--tx);outline:none;resize:none;min-height:60px}
+.rf-foot{padding:10px 16px 14px;display:flex;justify-content:flex-end;gap:7px;border-top:1px solid var(--bd);margin-top:8px}
+.rf-submit{background:var(--g);color:#fff;border:none;padding:8px 20px;border-radius:7px;font-size:12px;font-weight:700}
+.rf-cancel{background:var(--s3);color:var(--sub);border:none;padding:8px 14px;border-radius:7px;font-size:12px}
+/* PROFILE */
+.ph-hero{background:var(--tx);padding:22px 16px 18px;color:#fff;position:relative;overflow:hidden}
+.ph-deco{position:absolute;top:-40px;right:-40px;width:130px;height:130px;border-radius:50%;background:rgba(26,74,140,0.35)}
+.ph-av{width:60px;height:60px;border-radius:50%;background:var(--b);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;margin-bottom:10px;border:3px solid rgba(255,255,255,0.2);position:relative}
+.ph-name{font-size:18px;font-weight:900;position:relative}
+.ph-meta{font-size:11px;color:rgba(255,255,255,0.55);margin-top:3px;position:relative}
+.ph-stats{display:flex;margin-top:14px;background:rgba(255,255,255,0.06);border-radius:7px;overflow:hidden}
+.ph-st{flex:1;text-align:center;padding:9px 0;border-right:1px solid rgba(255,255,255,0.08)}
+.ph-st:last-child{border-right:none}
+.ph-sn{font-size:16px;font-weight:900;font-family:'DM Mono',monospace;color:var(--y)}
+.ph-sl{font-size:9px;color:rgba(255,255,255,0.4);margin-top:1px}
+.form-sec{padding:14px 16px}
+.fg{margin-bottom:13px}
+.fl{font-size:11px;font-weight:700;color:var(--sub);letter-spacing:0.5px;margin-bottom:5px;display:block}
+.fl-req::after{content:" *";color:var(--r)}
+.fi{width:100%;padding:9px 11px;background:var(--sur);border:1px solid var(--bd);border-radius:7px;font-size:13px;color:var(--tx);outline:none;transition:border-color 0.2s}
+.fi:focus{border-color:var(--b)}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.chip{padding:5px 11px;border-radius:18px;font-size:11px;font-weight:600;border:1px solid var(--bd2);background:var(--sur);color:var(--sub);cursor:pointer;transition:all 0.2s}
+.chip.on{background:var(--b);border-color:var(--b);color:#fff}
+.chip.on-r{background:var(--r);border-color:var(--r);color:#fff}
+.sec-divider{font-size:11px;font-weight:700;color:var(--sub);letter-spacing:1px;text-transform:uppercase;margin:14px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--bd)}
+.upload-box{width:100%;padding:13px;background:var(--s2);border:2px dashed var(--bd2);border-radius:8px;display:flex;align-items:center;gap:9px;cursor:pointer}
+.upload-done{display:flex;align-items:center;gap:7px;padding:9px 11px;background:#e8f5ee;border:1px solid rgba(26,107,60,0.2);border-radius:7px;font-size:12px;color:var(--g)}
+.save-btn{margin:0 16px 16px;width:calc(100% - 32px);background:var(--tx);color:#fff;border:none;padding:13px;border-radius:10px;font-size:14px;font-weight:700;letter-spacing:0.5px}
+.save-btn.saved{background:var(--g)}
+.hint-y{padding:9px 11px;border-radius:8px;font-size:11px;line-height:1.5;background:#fff8e0;border:1px solid #f5d76e;color:#8a6000;margin-bottom:12px}
+.hint-b{padding:9px 11px;border-radius:8px;font-size:11px;line-height:1.5;background:#e8f0ff;border:1px solid rgba(26,74,140,0.2);color:var(--b);margin-bottom:12px}
+.warn-banner{margin:10px 16px 0;padding:9px 12px;background:#fff3ee;border:1px solid rgba(212,66,10,0.2);border-radius:9px;font-size:11px;color:var(--r)}
+.success-bar{margin:10px 16px 0;padding:10px 13px;background:#e8f5ee;border:1px solid rgba(26,107,60,0.2);border-radius:9px;font-size:12px;color:var(--g);font-weight:700}
+/* LB */
+.lb{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.lb-em{font-size:90px}
+.lb-close{position:absolute;top:18px;right:18px;background:rgba(255,255,255,0.12);border:none;color:#fff;width:34px;height:34px;border-radius:50%;font-size:17px;cursor:pointer}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.page>*{animation:fadeUp 0.2s ease both}
+`;
+
+/* ════════════════════════════
+   SHARED COMPONENTS
+════════════════════════════ */
+function StarsDisplay({score, size=12}) {
+  return e('div', {style:{display:'flex',gap:2}},
+    ...[1,2,3,4,5].map(i => e('span',{key:i,style:{fontSize:size,color:i<=Math.round(score)?'#f5a623':'#d4cfc4'}},'★'))
+  );
+}
+
+function ScoreRing({score}) {
+  const c = gsc(score), r=26, ci=2*Math.PI*r, d=(score/100)*ci;
+  return e('div',{className:'ring'},
+    e('svg',{width:64,height:64,viewBox:'0 0 64 64',className:'ring-svg'},
+      e('circle',{cx:32,cy:32,r,fill:'none',stroke:'var(--bd)',strokeWidth:4.5}),
+      e('circle',{cx:32,cy:32,r,fill:'none',stroke:c.h,strokeWidth:4.5,strokeDasharray:`${d} ${ci-d}`,strokeLinecap:'round'})
+    ),
+    e('div',{className:'ring-inner'},
+      e('span',{className:'ring-num',style:{color:c.h}},score),
+      e('span',{className:'ring-lbl'},'匹配分')
+    )
+  );
+}
+
+/* ════════════════════════════
+   1. MATCH PAGE
+════════════════════════════ */
+function MatchPage({profile, onGoProfile}) {
+  const [sort, setSort] = useState('匹配度');
+  const [sel, setSel] = useState(null);
+  const [spin, setSpin] = useState(false);
+
+  const scored = JOBS_DB.map(j => ({...j, mr: calcMatch(j, profile)}));
+  const sorted = [...scored].sort((a,b) =>
+    sort==='匹配度'?b.mr.total-a.mr.total:sort==='薪资最高'?b.payRate-a.payRate:b.rating-a.rating
+  );
+  const top = sorted.filter(j=>j.mr.total>=45).slice(0,5);
+  const rest = sorted.filter(j=>j.mr.total<45).slice(0,3);
+  const noProfile = !profile.types||!profile.types.length;
+
+  const ScoreBar = ({score}) => {
+    const c = gsc(score);
+    const fc = c.cls==='high'?'fill-h':c.cls==='mid'?'fill-m':'fill-l';
+    const nc = c.cls==='high'?'num-high':c.cls==='mid'?'num-mid':'num-low';
+    return e('div',{className:'ms-row'},
+      e('span',{className:'ms-lbl'},'综合匹配'),
+      e('div',{className:'ms-bar'},e('div',{className:`ms-fill ${fc}`,style:{width:`${score}%`}})),
+      e('span',{className:`ms-num ${nc}`},`${score}%`)
+    );
+  };
+
+  return e('div',{className:'page'},
+    /* Hero */
+    e('div',{className:'hero',style:{background:'var(--tx)'}},
+      e('div',{className:'hero-r',style:{background:ZC[0]}}),
+      e('h2',null,'大数据智能匹配',e('br'),e('span',{className:'hero-em'},'精准推荐'),'最佳机会'),
+      e('p',null,'工种 · 城市 · 经验 · 薪资 · 交通工具 5维计算')
+    ),
+
+    /* Profile banner */
+    noProfile && e('div',{className:'warn-banner'},'⚠️ 请前往「我的」填写工种和城市，匹配结果更精准'),
+
+    e('div',{className:'prof-banner'},
+      e('div',{className:'pb-av'},(profile.name||'我')[0]),
+      e('div',{className:'pb-info'},
+        e('div',{className:'pb-name'},profile.name||'（请填写姓名）'),
+        e('div',{className:'pb-meta'},`${(profile.types||[]).join('·')||'未填工种'} · ${profile.experience||'?'}年 · ${profile.currentCity||'未填城市'}`),
+        e('div',{className:'pb-chips'},
+          ...(profile.workCities||[]).map(c=>e('span',{key:c,className:'pb-chip'},`📍${c}`)),
+          profile.payExpect&&e('span',{className:'pb-chip'},`💰$${profile.payExpect}/${profile.payUnit||'时'}`)
+        )
+      ),
+      e('button',{className:'pb-edit',onClick:onGoProfile},'编辑 ›')
+    ),
+
+    /* Algo strip */
+    e('div',{className:'algo-strip'},
+      e('span',{style:{fontSize:16}},'🤖'),
+      e('div',{className:'algo-txt'},e('b',null,'智能匹配算法'),': 工种(35)+城市(25)+经验(20)+薪资(15)+交通(5)'),
+      e('button',{className:'algo-btn',onClick:()=>{setSpin(true);setTimeout(()=>setSpin(false),1000);}},
+        spin?'⟳':'刷新')
+    ),
+
+    /* Sort */
+    e('div',{className:'sort-row'},
+      e('span',{style:{fontSize:10,color:'var(--sub)',whiteSpace:'nowrap',flexShrink:0}},'排序：'),
+      ...['匹配度','薪资最高','信誉最佳'].map(s=>
+        e('button',{key:s,className:`sc ${sort===s?'on':''}`,onClick:()=>setSort(s)},s)
+      )
+    ),
+
+    /* Top picks */
+    top.length>0 && e('div',{className:'ai-label',style:{marginTop:8}},
+      e('span',{className:'ai-badge'},'🎯 AI优选'),
+      e('span',{className:'ai-desc'},`为您筛选 ${top.length} 个最佳职位`)
+    ),
+
+    top.length===0
+      ? e('div',{className:'card',style:{margin:'10px 16px'}},
+          e('div',{style:{textAlign:'center',padding:'36px 20px',color:'var(--sub)'}},
+            e('div',{style:{fontSize:44,marginBottom:10}},'🔍'),
+            e('div',{style:{fontSize:13,lineHeight:1.6}},'暂无高匹配职位，请完善资料'),
+            e('button',{style:{marginTop:14,background:'var(--b)',color:'#fff',border:'none',padding:'9px 22px',borderRadius:8,fontSize:12,fontWeight:700},onClick:onGoProfile},'完善资料')
+          )
+        )
+      : e('div',{className:'card',style:{margin:'0 16px'}},
+          ...top.map((job,idx)=>
+            e('div',{key:job.id,className:'li',onClick:()=>setSel(job)},
+              e('div',{className:`rank ${['rk1','rk2','rk3','rkn'][Math.min(idx,3)]}`},
+                idx===0?'①':idx===1?'②':idx===2?'③':idx+1),
+              e('div',{className:'li-top'},
+                e('div',{className:'li-company'},job.company),
+                e('div',{className:'li-pay'},`A$${job.payRate}/${job.payUnit}`)
+              ),
+              e('div',{className:'li-sub'},`${job.city} · ${job.types.join('/')} · ⭐${job.rating}`),
+              e('div',{className:'tags'},
+                ...job.tags.map(t=>e('span',{key:t,className:`tag ${t==='急招'?'tag-r':''}`},t)),
+                ...(job.mr.overlap||[]).map(s=>e('span',{key:s,className:'tag tag-g'},`✓${s}`))
+              ),
+              ScoreBar({score:job.mr.total}),
+              e('div',{className:'dims'},
+                ...Object.values(job.mr.dims).map(d=>
+                  e('div',{key:d.label,className:'dim'},
+                    e('div',{className:'dim-dot',style:{background:d.match?'var(--g)':'var(--bd2)'}}),
+                    e('span',{style:{color:d.match?'var(--g)':'var(--sub)',fontWeight:d.match?700:400}},d.label)
+                  )
+                )
+              )
+            )
+          )
+        ),
+
+    /* Rest */
+    rest.length>0 && e('div',null,
+      e('div',{style:{padding:'6px 16px 5px'}},e('span',{style:{fontSize:10,color:'var(--sub)'}},'其他职位（匹配度较低）')),
+      e('div',{className:'card',style:{margin:'0 16px'}},
+        ...rest.map(job=>
+          e('div',{key:job.id,className:'li',style:{opacity:0.65},onClick:()=>setSel(job)},
+            e('div',{className:'li-top'},
+              e('div',{className:'li-company'},job.company),
+              e('div',{className:'li-pay'},`A$${job.payRate}/${job.payUnit}`)
+            ),
+            e('div',{className:'li-sub'},`${job.city} · ${job.types.join('/')}`),
+            e('div',{className:'ms-row'},
+              e('span',{className:'ms-lbl'},'匹配度'),
+              e('div',{className:'ms-bar'},e('div',{className:'ms-fill fill-l',style:{width:`${job.mr.total}%`}})),
+              e('span',{className:'ms-num num-low'},`${job.mr.total}%`)
+            )
+          )
+        )
+      )
+    ),
+
+    /* Modal */
+    sel && e('div',{className:'overlay',onClick:()=>setSel(null)},
+      e('div',{className:'sheet',onClick:ev=>ev.stopPropagation()},
+        e('div',{className:'sh-handle'}),
+        e('div',{className:'sh-hd'},
+          e('div',null,
+            e('div',{className:'sh-title'},sel.company),
+            e('div',{className:'sh-sub'},`${sel.city} · ⭐${sel.rating} · ${sel.reviews}条评价`)
+          ),
+          e('div',{style:{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:4}},
+            e('div',{style:{fontSize:15,fontWeight:900,color:'var(--r)'}},`A$${sel.payRate}/${sel.payUnit}`),
+            e('button',{className:'sh-close',onClick:()=>setSel(null)},'✕')
+          )
+        ),
+        e('div',{className:'sh-sec'},
+          e('div',{className:'sh-sec-title'},'AI 匹配分析'),
+          e('div',{className:'ring-wrap'},
+            ScoreRing({score:sel.mr.total}),
+            e('div',{className:'ring-reason'},
+              e('h4',null,sel.mr.total>=80?'🏆 高度吻合，强烈推荐！':sel.mr.total>=65?'✅ 匹配良好':'📋 基本符合'),
+              e('p',null,(sel.mr.overlap||[]).length>0?`工种「${(sel.mr.overlap||[]).join('、')}」吻合，`:'',
+                sel.mr.dims.city?.match?'地区匹配。':'地区不符，需通勤。')
+            )
+          ),
+          e('div',{className:'dim-bars'},
+            ...Object.values(sel.mr.dims).map(d=>
+              e('div',{key:d.label},
+                e('div',{className:'db-hd'},
+                  e('span',{className:'db-name'},d.label),
+                  e('span',{className:'db-val',style:{color:d.match?'var(--g)':'var(--sub)'}},`${d.score}/${d.max}分`)
+                ),
+                e('div',{className:'db-bar'},
+                  e('div',{className:'db-fill',style:{width:`${d.score/d.max*100}%`,background:d.match?'var(--g)':'var(--bd2)'}})
+                )
+              )
+            )
+          )
+        ),
+        e('div',{className:'sh-sec'},
+          e('div',{className:'sh-sec-title'},'职位描述'),
+          e('div',{className:'tags',style:{marginBottom:8}},
+            ...sel.types.map(t=>e('span',{key:t,className:'tag tag-b'},t)),
+            ...sel.tags.map(t=>e('span',{key:t,className:'tag tag-r'},t))
+          ),
+          e('div',{style:{fontSize:12,color:'var(--sub)',lineHeight:1.6}},sel.desc),
+          e('div',{style:{fontSize:12,marginTop:8}},`💰 A$${sel.payRate}/${sel.payUnit} · 结算：${sel.payDay}`)
+        ),
+        e('div',{className:'btn-row'},
+          e('button',{className:'btn btn-s',onClick:()=>setSel(null)},'稍后再看'),
+          e('button',{className:'btn btn-p'},'立即申请')
+        )
+      )
+    )
+  );
+}
+
+/* ════════════════════════════
+   2. CHECKIN PAGE
+════════════════════════════ */
+function CheckinPage({role}) {
+  const [checked, setChecked] = useState(false);
+  const [showTraj, setShowTraj] = useState(false);
+  const [selW, setSelW] = useState(null);
+  const isCompany = role==='company';
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+  const WORKER_DOTS = [
+    {name:'张',x:'48%',y:'44%',color:'#d4420a'},
+    {name:'刘',x:'55%',y:'52%',color:'#1a6b3c'},
+    {name:'王',x:'42%',y:'60%',color:'#1a4a8c'},
+  ];
+
+  return e('div',{className:'page'},
+    e('div',{className:'card',style:{margin:'14px 16px 0'}},
+      /* Map */
+      e('div',{className:'map-box'},
+        e('svg',{viewBox:'0 0 320 200',style:{position:'absolute',inset:0,width:'100%',height:'100%',opacity:0.2}},
+          ...[20,60,100,140,180].map(y=>e('line',{key:y,x1:0,y1:y,x2:320,y2:y,stroke:'#2a6a2a',strokeWidth:0.7})),
+          ...[0,64,128,192,256,320].map(x=>e('line',{key:x,x1:x,y1:0,x2:x,y2:200,stroke:'#2a6a2a',strokeWidth:0.7})),
+          e('line',{x1:0,y1:120,x2:320,y2:95,stroke:'#2a6a2a',strokeWidth:2}),
+          e('line',{x1:95,y1:0,x2:75,y2:200,stroke:'#2a6a2a',strokeWidth:1.5})
+        ),
+        isCompany
+          ? e('div',{style:{position:'absolute',inset:0}},
+              ...WORKER_DOTS.map((w,i)=>
+                e('div',{key:i,onClick:()=>setSelW(w),style:{
+                  position:'absolute',top:w.y,left:w.x,
+                  width:26,height:26,borderRadius:'50%',
+                  background:w.color,border:'2px solid #fff',
+                  color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',
+                  fontSize:11,fontWeight:700,cursor:'pointer',boxShadow:'0 2px 6px rgba(0,0,0,0.3)'
+                }},w.name)
+              )
+            )
+          : e('div',{style:{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)'}},
+              ...[{s:50,d:0},{s:70,d:0.5},{s:90,d:1}].map((p,i)=>
+                e('div',{key:i,className:'pulse-ring',style:{
+                  width:p.s,height:p.s,
+                  position:'absolute',top:'50%',left:'50%',
+                  animationDelay:`${p.d}s`
+                }})
+              ),
+              e('div',{className:'pulse-dot'})
+            ),
+        e('div',{className:'map-badge'},isCompany?'📍 恒大·龙湾项目 — 3人在场':'📍 恒大·龙湾项目 A栋 (GPS定位中…)')
+      ),
+      /* Info rows */
+      e('div',{style:{padding:'14px 16px'}},
+        ...(isCompany
+          ?[['今日在场','3 / 3 人','ci-g'],['实时时间',timeStr,''],['项目名称','恒大·龙湾项目',''],['今日日期',now.toLocaleDateString('zh-CN'),'']]
+          :[['GPS定位','已获取 (±5m)','ci-g'],['当前时间',timeStr,''],['今日状态',checked?'已打卡上班':'待打卡','ci-g'],['所在位置','工地A栋 200m内','ci-g']]
+        ).map(([l,v,c])=>
+          e('div',{key:l,className:'ci-row'},
+            e('span',{className:'ci-lbl'},l),
+            e('span',{className:`ci-val ${c}`},v)
+          )
+        )
+      )
+    ),
+
+    !isCompany && e('button',{
+      className:`ck-btn ${checked?'ck-out':'ck-in'}`,
+      onClick:()=>setChecked(!checked)
+    }, checked?'📤 GPS打卡下班':'📥 GPS打卡上班'),
+
+    /* Excel notice */
+    e('div',{className:'excel-strip'},
+      e('span',{style:{fontSize:22,flexShrink:0}},'📊'),
+      e('div',{style:{flex:1}},
+        e('b',{style:{fontSize:12,display:'block',marginBottom:2}},'自动汇总Excel报表'),
+        e('span',{style:{fontSize:10,color:'var(--sub)',lineHeight:1.4,display:'block'}},
+          '每日凌晨12:00系统自动汇总GPS轨迹、打卡记录及工时，生成Excel推送至公司端后台')
+      )
+    ),
+
+    /* Trajectory */
+    !isCompany && e('div',{style:{padding:'0 16px 14px'}},
+      e('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}},
+        e('span',{style:{fontSize:11,fontWeight:700,color:'var(--sub)',letterSpacing:0.5,textTransform:'uppercase'}},'今日定位轨迹'),
+        e('button',{style:{fontSize:11,color:'var(--b)',background:'none',border:'none',fontWeight:700},
+          onClick:()=>setShowTraj(!showTraj)},showTraj?'收起':'展开')
+      ),
+      showTraj && e('div',null,
+        ...TRAJ_DATA.map((t,i)=>
+          e('div',{key:i,className:'traj-item'},
+            e('div',{className:'traj-dot',style:{background:t.color}}),
+            e('div',{style:{flex:1}},
+              e('div',{className:'traj-time',style:{color:t.color}},t.time),
+              e('div',{className:'traj-loc'},t.loc),
+              e('div',{className:'traj-note'},t.note)
+            )
+          )
+        )
+      )
+    ),
+
+    /* Company worker list */
+    isCompany && e('div',{style:{padding:'0 16px'}},
+      e('div',{style:{fontSize:11,fontWeight:700,color:'var(--sub)',letterSpacing:1,textTransform:'uppercase',margin:'12px 0 8px'}},'今日打卡记录'),
+      e('div',{className:'card'},
+        ...[{n:'张建国',t:'电工',in:'07:55',color:'#d4420a'},{n:'刘大明',t:'钢筋工',in:'08:02',color:'#1a6b3c'},{n:'王建华',t:'水泥工',in:'08:18',color:'#1a4a8c'}].map(w=>
+          e('div',{key:w.n,style:{padding:'11px 13px',borderBottom:'1px solid var(--bd)',display:'flex',alignItems:'center',gap:10}},
+            e('div',{style:{width:32,height:32,borderRadius:'50%',background:w.color,color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,fontSize:13}},w.n[0]),
+            e('div',{style:{flex:1}},
+              e('div',{style:{fontSize:12,fontWeight:700}},`${w.n} · ${w.t}`),
+              e('div',{style:{fontSize:10,color:'var(--sub)',marginTop:2}},`上班 ${w.in} — 下班 进行中`)
+            ),
+            e('div',{style:{fontSize:11,fontWeight:700,color:'var(--g)',fontFamily:'DM Mono,monospace'}},'进行中')
+          )
+        )
+      )
+    ),
+
+    selW && e('div',{className:'overlay',onClick:()=>setSelW(null)},
+      e('div',{className:'sheet',onClick:ev=>ev.stopPropagation()},
+        e('div',{className:'sh-handle'}),
+        e('div',{style:{padding:'14px 16px',display:'flex',gap:10,alignItems:'center'}},
+          e('div',{style:{width:44,height:44,borderRadius:'50%',background:selW.color,color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,fontSize:18}},selW.name),
+          e('div',null,e('div',{style:{fontSize:15,fontWeight:900}},'工人实时位置'),e('div',{style:{fontSize:11,color:'var(--sub)',marginTop:2}},'状态：在岗 · GPS精度±5m'))
+        ),
+        e('div',{style:{padding:'0 16px 14px',fontSize:12,color:'var(--sub)',lineHeight:1.6}},'当前位于项目工地A栋施工区域，已打卡上班，今日工时进行中'),
+        e('div',{className:'btn-row'},e('button',{className:'btn btn-s',onClick:()=>setSelW(null)},'关闭'),e('button',{className:'btn btn-p',style:{background:'var(--b)'}},'查看日志'))
+      )
+    )
+  );
+}
+
+/* ════════════════════════════
+   3. DIARY PAGE
+════════════════════════════ */
+function DiaryPage({role:outerRole}) {
+  const [role, setRole] = useState(outerRole==='company'?'company':'worker');
+  return e('div',{className:'page'},
+    e('div',{className:'sw'},
+      e('button',{className:`sw-btn ${role==='worker'?'on':''}`,onClick:()=>setRole('worker')},'👷 工人端'),
+      e('button',{className:`sw-btn ${role==='company'?'on':''}`,onClick:()=>setRole('company')},'🏢 公司端')
+    ),
+    role==='worker'?e(WorkerDiary):e(CompanyDiary)
+  );
+}
+
+const MOCK_PHOTOS_LIST = [{e:'📸',c:'施工现场'},{e:'🏗️',c:'结构搭建'},{e:'⚒️',c:'焊接作业'},{e:'🔧',c:'管道安装'},{e:'🧱',c:'砌砖施工'},{e:'📐',c:'测量放线'}];
+
+function WorkerDiary() {
+  const [ck, setCk] = useState([1]);
+  const [text, setText] = useState('');
+  const [taskType, setTaskType] = useState('防水施工');
+  const [hours, setHours] = useState('10.0');
+  const [photos, setPhotos] = useState([]);
+  const [lb, setLb] = useState(null);
+  const [entries, setEntries] = useState([
+    {id:1,date:'2024-03-21',content:'完成A区外墙防水层铺设22㎡，超预期。质检验收通过。',tasks:[{name:'三楼外墙防水层施工',done:true},{name:'二楼走廊钢筋绑扎',done:false}],hours:'10.7',photos:['🧱','📋']},
+    {id:2,date:'2024-03-20',content:'钢筋绑扎完成B区1个节点，材料延迟40分钟，安全检查通过。',tasks:[{name:'二楼走廊钢筋绑扎',done:true}],hours:'10.5',photos:['🔩']},
+  ]);
+
+  const toggleCk = id => setCk(p=>p.includes(id)?p.filter(x=>x!==id):[...p,id]);
+  const addPhoto = () => { const p=MOCK_PHOTOS_LIST[photos.length%MOCK_PHOTOS_LIST.length]; setPhotos(prev=>[...prev,{...p,id:Date.now()}]); };
+  const rmPhoto = id => setPhotos(p=>p.filter(x=>x.id!==id));
+  const submit = () => {
+    if(!text.trim()) return;
+    setEntries(p=>[{id:Date.now(),date:new Date().toISOString().slice(0,10),
+      content:text,tasks:ASSIGNED_TODAY.map(t=>({name:t.name,done:ck.includes(t.id)})),
+      hours,photos:photos.map(x=>x.e)}, ...p]);
+    setText(''); setPhotos([]); setCk([]);
+  };
+
+  return e('div',null,
+    /* Today tasks */
+    e('div',{className:'ttb'},
+      e('div',{className:'ttb-hd'},
+        e('span',null,'📋 今日工作任务（公司下发）'),
+        e('span',{className:'ttb-hd-d'},new Date().toLocaleDateString('zh-CN'))
+      ),
+      e('div',{style:{background:'var(--sur)',padding:'3px 13px'}},
+        ...ASSIGNED_TODAY.map(t=>
+          e('div',{key:t.id,className:'t-row'},
+            e('div',{className:`t-ck ${ck.includes(t.id)?'done':''}`,onClick:()=>toggleCk(t.id)},ck.includes(t.id)?'✓':''),
+            e('div',{style:{flex:1}},
+              e('div',{className:`t-name ${ck.includes(t.id)?'done':''}`},t.name),
+              e('span',{className:'t-zone',style:{background:t.color+'18',color:t.color}},t.zone),
+              e('div',{className:'t-req'},`⚠️ ${t.req}`)
+            )
+          )
+        )
+      ),
+      e('div',{className:'prog-row'},
+        e('span',{className:'prog-lbl'},'今日进度'),
+        e('div',{className:'prog-bar'},e('div',{className:'prog-fill',style:{width:`${ck.length/ASSIGNED_TODAY.length*100}%`}})),
+        e('span',{className:'prog-num'},`${ck.length}/${ASSIGNED_TODAY.length}`)
+      )
+    ),
+
+    /* Compose */
+    e('div',{className:'compose'},
+      e('div',{className:'compose-hd'},e('span',{className:'compose-title'},'📝 填写今日日志'),e('span',{className:'compose-loc'},'📍 恒大·龙湾A栋')),
+      e('div',{style:{padding:'11px 13px'}},
+        e('textarea',{className:'dta',placeholder:'描述今天工作内容、问题、完成情况…',value:text,onChange:ev=>setText(ev.target.value)}),
+        e('div',{style:{marginTop:8,fontSize:10,fontWeight:700,color:'var(--sub)',letterSpacing:0.5}},'📷 工作照片（点击添加）'),
+        e('div',{className:'photo-row'},
+          e('div',{className:'ph-add',onClick:addPhoto},'＋',e('span',{style:{fontSize:9}},'添加')),
+          ...photos.map(p=>
+            e('div',{key:p.id,className:'ph-item',onClick:()=>setLb(p)},
+              p.e,
+              e('div',{className:'ph-del',onClick:ev=>{ev.stopPropagation();rmPhoto(p.id);}},'✕')
+            )
+          )
+        ),
+        e('div',{className:'meta-row'},
+          e('select',{className:'meta-sel',value:taskType,onChange:ev=>setTaskType(ev.target.value)},
+            ...['防水施工','钢筋绑扎','浇筑','电焊','砌砖','安全检查','其他'].map(o=>e('option',{key:o},o))
+          ),
+          e('input',{className:'hrs-in',type:'number',step:0.5,value:hours,onChange:ev=>setHours(ev.target.value),placeholder:'工时'}),
+          e('span',{style:{fontSize:11,color:'var(--sub)'}},'小时')
+        ),
+        e('div',{className:'tc-lbl'},'✅ 确认今日任务完成'),
+        ...ASSIGNED_TODAY.map(t=>
+          e('div',{key:t.id,className:'tc-item'},
+            e('div',{className:`tc-box ${ck.includes(t.id)?'on':''}`,onClick:()=>toggleCk(t.id)},ck.includes(t.id)?'✓':''),
+            e('span',{style:{flex:1}},t.name),
+            e('span',{style:{fontSize:9,color:t.color,fontWeight:700}},t.zone)
+          )
+        )
+      ),
+      e('div',{className:'compose-foot'},
+        e('button',{className:'btn-draft'},'存草稿'),
+        e('button',{className:'btn-sub',onClick:submit},'提交日志')
+      )
+    ),
+
+    /* History */
+    e('div',{className:'dl-hd'},e('span',{className:'dl-hd-t'},'历史日志'),e('span',{style:{fontSize:10,color:'var(--sub)'}},`共${entries.length}条`)),
+    e('div',{className:'card',style:{margin:'0 16px'}},
+      ...entries.map(entry=>{
+        const done = entry.tasks.filter(t=>t.done).length;
+        return e('div',{key:entry.id,className:'de'},
+          e('div',{className:'de-hd'},e('span',{className:'de-date'},entry.date),e('span',{className:'de-site'},'恒大·龙湾A栋')),
+          e('div',{className:'de-txt'},entry.content),
+          entry.photos.length>0 && e('div',{className:'de-photos'},
+            ...entry.photos.map((p,i)=>e('div',{key:i,className:'de-p',onClick:()=>setLb({e:p,c:''})},p))
+          ),
+          e('div',{className:'de-foot'},
+            e('span',{className:'de-stat'},`⏱ ${entry.hours}h`),
+            e('span',{className:'de-stat'},`📸 ${entry.photos.length}张`),
+            e('span',{className:`de-badge ${done===entry.tasks.length?'b-all':done>0?'b-part':'b-none'}`},
+              done===entry.tasks.length?'全部完成':done>0?`${done}/${entry.tasks.length}完成`:'未完成')
+          )
+        );
+      })
+    ),
+
+    lb && e('div',{className:'lb',onClick:()=>setLb(null)},e('div',{className:'lb-em'},lb.e),e('button',{className:'lb-close'},'✕'))
+  );
+}
+
+function CompanyDiary() {
+  const [tasks, setTasks] = useState(CO_TASKS_INIT);
+  const [logs] = useState(WORKER_LOGS_INIT);
+  const [activeW, setActiveW] = useState('全部');
+  const [showForm, setShowForm] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [form, setForm] = useState({name:'',zone:'A区·外立面',quota:'',assignTo:'',dueTime:'18:00'});
+  const ZONES = ['A区·外立面','B区·内部结构','C区·地下层','D区·屋面','E区·附属工程'];
+  const workers = ['全部',...new Set(logs.map(l=>l.worker))];
+  const filtered = activeW==='全部'?logs:logs.filter(l=>l.worker===activeW);
+  const totalDone = logs.filter(l=>l.tasks.every(t=>t.done)).length;
+  const openAdd = () => { setForm({name:'',zone:'A区·外立面',quota:'',assignTo:'',dueTime:'18:00'}); setEditId(null); setShowForm(true); };
+  const openEdit = t => { setForm({name:t.name,zone:t.zone,quota:t.quota,assignTo:t.assignTo,dueTime:t.dueTime}); setEditId(t.id); setShowForm(true); };
+  const save = () => {
+    if(!form.name.trim()) return;
+    const color = ZC[ZONES.indexOf(form.zone)>=0?ZONES.indexOf(form.zone):0];
+    editId?setTasks(p=>p.map(t=>t.id===editId?{...t,...form,color}:t)):setTasks(p=>[...p,{id:Date.now(),...form,color}]);
+    setShowForm(false);
+  };
+  const getSt = l => { const d=l.tasks.filter(t=>t.done).length; return d===l.tasks.length?{label:'全部完成',cls:'ws-ok'}:d>0?{label:`完成${d}/${l.tasks.length}`,cls:'ws-pt'}:{label:'未完成',cls:'ws-no'}; };
+
+  return e('div',null,
+    e('div',{className:'co-hd'},
+      e('div',{className:'co-hd-deco'}),
+      e('div',{className:'co-hd-title'},'工作规划 & 日志审查'),
+      e('div',{className:'co-hd-sub'},`恒大·龙湾项目 — ${new Date().toLocaleDateString('zh-CN')}`),
+      e('div',{className:'co-stats'},
+        ...[['任务',tasks.length],['工人',new Set(logs.map(l=>l.worker)).size],['全完成',totalDone],['照片',logs.reduce((a,l)=>a+l.photos.length,0)]].map(([l,n])=>
+          e('div',{key:l,className:'co-stat'},e('div',{className:'co-sn'},n),e('div',{className:'co-sl'},l))
+        )
+      )
+    ),
+    e('div',{className:'plan-sec'},
+      e('div',{className:'ps-hd'},'📌 今日任务规划'),
+      showForm
+        ? e('div',{className:'atf'},
+            e('div',{className:'atf-title'},editId?'✏️ 编辑任务':'➕ 新建任务'),
+            e('input',{className:'atf-in',placeholder:'任务名称',value:form.name,onChange:ev=>setForm(p=>({...p,name:ev.target.value}))}),
+            e('div',{className:'atf-row'},
+              e('select',{className:'atf-sel',value:form.zone,onChange:ev=>setForm(p=>({...p,zone:ev.target.value}))},
+                ...ZONES.map(o=>e('option',{key:o},o))),
+              e('select',{className:'atf-sel',value:form.assignTo,onChange:ev=>setForm(p=>({...p,assignTo:ev.target.value}))},
+                e('option',{value:''},'指派工人'),
+                ...['张建国','刘大明','王建华','陈师傅','李师傅'].map(o=>e('option',{key:o},o)))
+            ),
+            e('input',{className:'atf-in',style:{marginBottom:6},placeholder:'截止时间 如：18:00',value:form.dueTime,onChange:ev=>setForm(p=>({...p,dueTime:ev.target.value}))}),
+            e('textarea',{className:'atf-ta',placeholder:'每日达标要求…',value:form.quota,onChange:ev=>setForm(p=>({...p,quota:ev.target.value}))}),
+            e('div',{className:'atf-foot'},
+              e('button',{className:'atf-cancel',onClick:()=>setShowForm(false)},'取消'),
+              e('button',{className:'atf-ok',onClick:save},editId?'保存':'添加')
+            )
+          )
+        : e('button',{className:'add-btn',onClick:openAdd},e('span',{style:{fontSize:16}},'＋'),'新建今日工作任务'),
+      ...tasks.map(t=>
+        e('div',{key:t.id,className:'ptask'},
+          e('div',{className:'ptask-hd'},
+            e('div',{className:'ptask-bar',style:{background:t.color}}),
+            e('div',{className:'ptask-info'},
+              e('div',{className:'ptask-name'},t.name),
+              e('div',{className:'ptask-zone',style:{color:t.color}},`📍 ${t.zone}`),
+              t.quota&&e('div',{className:'ptask-std'},`⚠️ ${t.quota}`)
+            ),
+            e('div',{className:'ptask-acts'},
+              e('button',{className:'ptask-btn ptask-edit',onClick:()=>openEdit(t)},'编辑'),
+              e('button',{className:'ptask-btn ptask-del',onClick:()=>setTasks(p=>p.filter(x=>x.id!==t.id))},'删除')
+            )
+          ),
+          e('div',{className:'ptask-ft'},
+            e('span',{className:'ptask-assign',style:{color:'var(--sub)'}},
+              '指派：',e('b',{style:{color:'var(--b)'}},t.assignTo||'未指派')),
+            e('span',{style:{color:'var(--sub)'}},`截止 ${t.dueTime}`),
+            logs.some(l=>l.worker===t.assignTo&&l.tasks.some(lt=>lt.name===t.name&&lt.done))
+              ?e('span',{style:{marginLeft:'auto',fontSize:10,color:'var(--g)',fontWeight:700}},'✅ 已完成')
+              :e('span',{style:{marginLeft:'auto',fontSize:10,color:'var(--r)',fontWeight:600}},'⏳ 待完成')
+          )
+        )
+      )
+    ),
+    e('div',{className:'plan-sec',style:{paddingTop:0}},
+      e('div',{className:'ps-hd'},'📊 工人日志审查'),
+      e('div',{className:'wtabs'},
+        ...workers.map(w=>
+          e('button',{key:w,className:`wtab ${activeW===w?'on':''}`,onClick:()=>setActiveW(w)},
+            w!=='全部'&&e('span',{className:'wdot',style:{background:logs.find(l=>l.worker===w)?.color||'#888'}}),
+            w)
+        )
+      ),
+      ...filtered.map(log=>{
+        const st=getSt(log);
+        return e('div',{key:log.id,className:'wlog'},
+          e('div',{className:'wlog-hd'},
+            e('div',{className:'wlog-av',style:{background:log.color}},log.worker[0]),
+            e('div',{className:'wlog-name'},log.worker),
+            e('span',{className:'wlog-date'},log.date),
+            e('span',{className:`wlog-st ${st.cls}`},st.label)
+          ),
+          e('div',{className:'wlog-body'},
+            e('div',{className:'wlog-txt'},log.content),
+            e('div',{className:'wlog-tasks'},
+              ...log.tasks.map((t,i)=>
+                e('div',{key:i,className:'wlog-ti'},
+                  e('div',{className:'wlog-dot',style:{background:t.done?'var(--g)':'var(--r)'}}),
+                  e('span',{style:{color:t.done?'var(--g)':'var(--r)',fontWeight:700}},t.done?'✓':'✗'),
+                  e('span',null,t.name)
+                )
+              )
+            ),
+            log.photos.length>0&&e('div',{style:{display:'flex',gap:5,marginTop:7,alignItems:'center'}},
+              ...log.photos.map((p,i)=>e('div',{key:i,style:{width:48,height:48,borderRadius:6,border:'1px solid var(--bd)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,background:'var(--s3)'}},p)),
+              e('span',{style:{fontSize:10,color:'var(--sub)',marginLeft:4}},`${log.photos.length}张照片`)
+            )
+          ),
+          e('div',{className:'wlog-ft'},
+            e('span',{className:'wlog-stat'},`⏱ `,e('span',null,`${log.hours}h`)),
+            e('span',{className:'wlog-stat'},`📸 `,e('span',null,`${log.photos.length}张`)),
+            e('button',{className:'wlog-cmt'},'💬 批注')
+          )
+        );
+      })
+    )
+  );
+}
+
+/* ════════════════════════════
+   4. RATING PAGE
+════════════════════════════ */
+function RatingPage({role}) {
+  const [tab, setTab] = useState('companies');
+  const [ratingTarget, setRatingTarget] = useState(null);
+  const [editingW, setEditingW] = useState(null);
+  const [workerRatings, setWorkerRatings] = useState({});
+  const [companyRatings, setCompanyRatings] = useState({});
+  const [formDims, setFormDims] = useState({});
+  const [formText, setFormText] = useState('');
+  const [savedMsg, setSavedMsg] = useState('');
+
+  const openRateCompany = c => { setFormDims(companyRatings[c.id]?.dims||{payPunctual:0,stability:0,environment:0,management:0}); setFormText(companyRatings[c.id]?.text||''); setRatingTarget(c); };
+  const openRateWorker = w => { setFormDims(workerRatings[w.id]?.dims||{efficiency:0,attitude:0,reliability:0,skill:0}); setFormText(workerRatings[w.id]?.text||''); setEditingW(w); };
+  const submitC = () => { setCompanyRatings(p=>({...p,[ratingTarget.id]:{dims:formDims,text:formText,date:new Date().toISOString().slice(0,10)}})); setSavedMsg(`已评价「${ratingTarget.name}」`); setRatingTarget(null); setTimeout(()=>setSavedMsg(''),2500); };
+  const submitW = () => { setWorkerRatings(p=>({...p,[editingW.id]:{dims:formDims,text:formText,date:new Date().toISOString().slice(0,10)}})); setSavedMsg(`已评价「${editingW.name}」`); setEditingW(null); setTimeout(()=>setSavedMsg(''),2500); };
+  const avgD = dims => { const v=Object.values(dims).filter(x=>x>0); return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):'—'; };
+
+  const StarPicker = ({dimKey}) => e('div',{className:'star-row'},
+    ...[1,2,3,4,5].map(n=>e('button',{key:n,className:'star-btn',onClick:()=>setFormDims(p=>({...p,[dimKey]:n}))},
+      e('span',{style:{color:n<=(formDims[dimKey]||0)?'#f5a623':'#d4cfc4'}},'★')
+    )),
+    formDims[dimKey]>0&&e('span',{style:{fontSize:11,color:'var(--sub)',marginLeft:4}},['','很差','较差','一般','良好','非常好'][formDims[dimKey]])
+  );
+
+  return e('div',{className:'page'},
+    e('div',{className:'rt-hero'},
+      e('div',{className:'hero-r',style:{background:'#f5a623'}}),
+      e('h2',null,'信誉评级系统',e('br'),e('span',{className:'hero-em'},'双向互信'),'用工生态'),
+      e('p',null,'工人评公司 · 公司评工人 · 透明诚信')
+    ),
+    savedMsg&&e('div',{className:'success-bar'},`✅ ${savedMsg}`),
+    e('div',{className:'sw'},
+      e('button',{className:`sw-btn ${tab==='companies'?'on':''}`,onClick:()=>setTab('companies')},'🏢 公司评级'),
+      e('button',{className:`sw-btn ${tab==='workers'?'on':''}`,onClick:()=>setTab('workers')},'👷 工人评级')
+    ),
+
+    tab==='companies'&&e('div',null,
+      e('div',{className:'hint-y',style:{margin:'10px 16px 0'}},
+        '⏰ 工人对公司的评价需在入职后第一周内（7天内）完成，逾期将无法评价。'),
+      e('div',{className:'card',style:{margin:'8px 16px 0'}},
+        ...COMPANIES_RATED.map(c=>{
+          const myR=companyRatings[c.id], rated=!!myR, canRate=c.weeksPassed<=1;
+          return e('div',{key:c.id,className:'rc'},
+            e('div',{className:'rc-hd'},
+              e('div',{className:'rc-av',style:{background:c.color}},c.name[0]),
+              e('div',{className:'rc-info'},
+                e('div',{className:'rc-name'},c.name),
+                e('div',{className:'rc-desc'},c.type),
+                e('div',{style:{display:'flex',gap:5,alignItems:'center',marginTop:3}},
+                  StarsDisplay({score:rated?parseFloat(avgD(myR.dims)):c.overall,size:12}),
+                  e('span',{style:{fontSize:11,fontFamily:'DM Mono,monospace',fontWeight:700}},rated?avgD(myR.dims):c.overall)
+                )
+              ),
+              e('div',{style:{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:5}},
+                e('span',{style:{fontSize:10,color:'var(--sub)'}},`${c.reviews}条评价`),
+                canRate&&!rated?e('button',{style:{background:'var(--r)',color:'#fff',border:'none',padding:'5px 10px',borderRadius:6,fontSize:11,fontWeight:700},onClick:()=>openRateCompany(c)},'评价')
+                :rated?e('button',{style:{background:'var(--g)',color:'#fff',border:'none',padding:'5px 10px',borderRadius:6,fontSize:11,fontWeight:700},onClick:()=>openRateCompany(c)},'修改')
+                :e('span',{style:{fontSize:10,color:'var(--sub)',background:'var(--s3)',padding:'3px 7px',borderRadius:5}},'已过期')
+              )
+            ),
+            rated?e('div',{style:{marginTop:8,padding:'8px 10px',background:'var(--s2)',borderRadius:7,border:'1px solid var(--bd)'}},
+              e('div',{style:{fontSize:10,fontWeight:700,color:'var(--g)',marginBottom:5}},`✅ 我的评价（${myR.date}）`),
+              e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:4}},
+                ...COMPANY_DIMS.map(d=>e('div',{key:d.key,style:{fontSize:10,display:'flex',alignItems:'center',gap:3}},
+                  d.icon,' ',e('span',{style:{color:'var(--sub)'}},`${d.label}：`),
+                  e('span',{style:{fontWeight:700,color:'#f5a623'}},'★'.repeat(myR.dims[d.key]||0))
+                ))
+              ),
+              myR.text&&e('div',{style:{fontSize:11,color:'var(--sub)',marginTop:5,lineHeight:1.4}},`"${myR.text}"`)
+            ):e('div',null,
+              e('div',{className:'rc-badges'},...c.badges.map((b,j)=>e('span',{key:j,className:`badge ${['bg-gold','bg-b','bg-g'][j%3]}`},b))),
+              e('div',{className:'rc-review'},`"${c.review}"`)
+            ),
+            !canRate&&!rated&&e('div',{style:{marginTop:7,fontSize:10,color:'var(--sub)',background:'var(--s3)',padding:'6px 9px',borderRadius:6}},'⏰ 评价窗口已关闭（仅限入职第一周内）')
+          );
+        })
+      )
+    ),
+
+    tab==='workers'&&e('div',null,
+      e('div',{className:'hint-b',style:{margin:'10px 16px 0'}},
+        '🔄 公司对工人的评价随时可以修改，包含工作效率、个人素养、靠谱程度、技能熟练度四个维度。'),
+      e('div',{className:'card',style:{margin:'8px 16px 0'}},
+        ...WORKERS_RATED.map(w=>{
+          const myR=workerRatings[w.id], rated=!!myR;
+          return e('div',{key:w.id,className:'rc'},
+            e('div',{className:'rc-hd'},
+              e('div',{className:'rc-av',style:{background:w.color}},w.name[0]),
+              e('div',{className:'rc-info'},
+                e('div',{className:'rc-name'},w.name),
+                e('div',{className:'rc-desc'},w.type),
+                e('div',{style:{display:'flex',gap:5,alignItems:'center',marginTop:3}},
+                  StarsDisplay({score:rated?parseFloat(avgD(myR.dims)):w.overall,size:12}),
+                  e('span',{style:{fontSize:11,fontFamily:'DM Mono,monospace',fontWeight:700}},rated?avgD(myR.dims):w.overall)
+                )
+              ),
+              e('button',{style:{background:rated?'var(--b)':'var(--r)',color:'#fff',border:'none',padding:'5px 10px',borderRadius:6,fontSize:11,fontWeight:700,flexShrink:0},onClick:()=>openRateWorker(w)},rated?'修改评价':'评价工人')
+            ),
+            rated?e('div',{style:{marginTop:8,padding:'8px 10px',background:'var(--s2)',borderRadius:7,border:'1px solid var(--bd)'}},
+              e('div',{style:{fontSize:10,fontWeight:700,color:'var(--b)',marginBottom:5}},`📝 我的评价（${myR.date}）`),
+              e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:4}},
+                ...WORKER_DIMS.map(d=>e('div',{key:d.key,style:{fontSize:10,display:'flex',alignItems:'center',gap:3}},
+                  d.icon,' ',e('span',{style:{color:'var(--sub)'}},`${d.label}：`),
+                  e('span',{style:{fontWeight:700,color:'#f5a623'}},'★'.repeat(myR.dims[d.key]||0))
+                ))
+              ),
+              myR.text&&e('div',{style:{fontSize:11,color:'var(--sub)',marginTop:5,lineHeight:1.4}},`"${myR.text}"`)
+            ):e('div',null,
+              e('div',{className:'rc-badges'},...w.badges.map((b,j)=>e('span',{key:j,className:`badge ${['bg-gold','bg-b'][j%2]}`},b))),
+              e('div',{className:'rc-review'},`"${w.review}"`)
+            )
+          );
+        })
+      )
+    ),
+
+    /* Company rating modal */
+    ratingTarget&&e('div',{className:'overlay',onClick:()=>setRatingTarget(null)},
+      e('div',{className:'sheet',onClick:ev=>ev.stopPropagation()},
+        e('div',{className:'sh-handle'}),
+        e('div',{className:'sh-hd'},
+          e('div',null,e('div',{className:'sh-title'},`评价 · ${ratingTarget.name}`)),
+          e('div',{style:{display:'flex',gap:6,alignItems:'center'}},
+            !companyRatings[ratingTarget.id]&&e('span',{style:{fontSize:10,color:'var(--r)',background:'#fff0ec',padding:'3px 8px',borderRadius:6,fontWeight:700}},'⏰ 仅限第1周'),
+            e('button',{className:'sh-close',onClick:()=>setRatingTarget(null)},'✕')
+          )
+        ),
+        e('div',{className:'rf-body'},
+          ...COMPANY_DIMS.map(d=>e('div',{key:d.key,className:'rf-dim'},
+            e('div',{className:'rf-lbl'},`${d.icon} ${d.label}`),
+            StarPicker({dimKey:d.key})
+          )),
+          e('div',{className:'rf-overall'},
+            e('div',{style:{fontSize:11,color:'var(--sub)',fontWeight:600,marginBottom:5}},'综合评语（选填）'),
+            e('textarea',{className:'rf-ta',placeholder:'分享您的真实用工体验…',value:formText,onChange:ev=>setFormText(ev.target.value)})
+          )
+        ),
+        e('div',{className:'rf-foot'},e('button',{className:'rf-cancel',onClick:()=>setRatingTarget(null)},'取消'),e('button',{className:'rf-submit',onClick:submitC},'提交评价'))
+      )
+    ),
+
+    /* Worker rating modal */
+    editingW&&e('div',{className:'overlay',onClick:()=>setEditingW(null)},
+      e('div',{className:'sheet',onClick:ev=>ev.stopPropagation()},
+        e('div',{className:'sh-handle'}),
+        e('div',{className:'sh-hd'},
+          e('div',null,e('div',{className:'sh-title'},`评价 · ${editingW.name}`)),
+          e('div',{style:{display:'flex',gap:6,alignItems:'center'}},
+            e('span',{style:{fontSize:10,color:'var(--b)',background:'#e8f0ff',padding:'3px 8px',borderRadius:6,fontWeight:700}},'随时可修改'),
+            e('button',{className:'sh-close',onClick:()=>setEditingW(null)},'✕')
+          )
+        ),
+        e('div',{className:'rf-body'},
+          ...WORKER_DIMS.map(d=>e('div',{key:d.key,className:'rf-dim'},
+            e('div',{className:'rf-lbl'},`${d.icon} ${d.label}`),
+            StarPicker({dimKey:d.key})
+          )),
+          e('div',{className:'rf-overall'},
+            e('div',{style:{fontSize:11,color:'var(--sub)',fontWeight:600,marginBottom:5}},'综合评语（选填）'),
+            e('textarea',{className:'rf-ta',placeholder:'对该工人的综合评价…',value:formText,onChange:ev=>setFormText(ev.target.value)})
+          )
+        ),
+        e('div',{className:'rf-foot'},e('button',{className:'rf-cancel',onClick:()=>setEditingW(null)},'取消'),e('button',{className:'rf-submit',onClick:submitW},'提交评价'))
+      )
+    )
+  );
+}
+
+/* ════════════════════════════
+   5. PROFILE PAGE
+════════════════════════════ */
+function ProfilePage({profile, setProfile, companyProfile, setCompanyProfile, role, setRole}) {
+  const [tab, setTab] = useState(role==='company'?'company':'worker');
+  const [saved, setSaved] = useState(false);
+  const [wp, setWp] = useState(profile);
+  const [cp, setCp] = useState(companyProfile);
+  const [uploads, setUploads] = useState({});
+  const simulateUpload = key => { setUploads(p=>({...p,[key]:'loading'})); setTimeout(()=>setUploads(p=>({...p,[key]:'done'})),800); };
+  const toggleWp = (field, val) => setWp(p=>({...p,[field]:(p[field]||[]).includes(val)?(p[field]||[]).filter(x=>x!==val):[...(p[field]||[]),val]}));
+  const toggleCp = (field, val) => setCp(p=>({...p,[field]:(p[field]||[]).includes(val)?(p[field]||[]).filter(x=>x!==val):[...(p[field]||[]),val]}));
+  const save = () => { if(tab==='worker')setProfile(wp); else setCompanyProfile(cp); setSaved(true); setTimeout(()=>setSaved(false),2500); };
+
+  const Chips = ({options, field, obj, onToggle, mode='b'}) =>
+    e('div',{className:'chips'},
+      ...options.map(v=>e('button',{key:v,className:`chip ${ (obj[field]||[]).includes(v)?(mode==='r'?'on-r':'on'):''}`,onClick:()=>onToggle(field,v)},v))
+    );
+
+  const UploadBox = ({fieldKey, label}) =>
+    uploads[fieldKey]==='done'
+      ? e('div',{className:'upload-done'},`✅ ${label}已上传`)
+      : e('div',{className:'upload-box',onClick:()=>simulateUpload(fieldKey)},
+          e('span',{style:{fontSize:22,flexShrink:0}},uploads[fieldKey]==='loading'?'⏳':'📄'),
+          e('div',null,e('b',{style:{display:'block',fontSize:12,marginBottom:2}},uploads[fieldKey]==='loading'?'上传中…':'点击上传文件'),e('span',{style:{fontSize:11,color:'var(--sub)'}},'支持 JPG, PNG, PDF（最大10MB）'))
+        );
+
+  const curName = tab==='worker'?(wp.name||'我'):(cp.name||'公司');
+  const curMeta = tab==='worker'
+    ?`${(wp.types||[]).join('·')||'未填工种'} · ${wp.experience||'?'}年 · ${wp.currentCity||'未填'}`
+    :`${(cp.types||[]).join('·')||'未填工程'} · ${(cp.cities||[]).join('、')||'未填城市'}`;
+
+  return e('div',{className:'page'},
+    e('div',{className:'ph-hero'},
+      e('div',{className:'ph-deco'}),
+      e('div',{className:'ph-av'},curName[0]),
+      e('div',{className:'ph-name'},curName),
+      e('div',{className:'ph-meta'},curMeta),
+      e('div',{className:'ph-stats'},
+        ...(tab==='worker'
+          ?[['4.8','信誉分'],['98%','出勤率'],['312','工时'],['26','日志']]
+          :[[cp.headcount||'—','规模'],['4.8','信誉分'],['3','在建项目'],['98%','准时率']]
+        ).map(([n,l])=>e('div',{key:l,className:'ph-st'},e('div',{className:'ph-sn'},n),e('div',{className:'ph-sl'},l)))
+      )
+    ),
+
+    e('div',{className:'sw'},
+      e('button',{className:`sw-btn ${tab==='worker'?'on':''}`,onClick:()=>{setTab('worker');setRole('worker');}},'👷 工人资料'),
+      e('button',{className:`sw-btn ${tab==='company'?'on':''}`,onClick:()=>{setTab('company');setRole('company');}},'🏢 公司资料')
+    ),
+
+    tab==='worker'
+      ? e('div',{className:'form-sec'},
+          e('div',{className:'hint-b'},'💡 标 * 字段为匹配关键项，资料越完整推荐越精准！'),
+
+          e('div',{className:'sec-divider'},'基本信息'),
+          e('div',{className:'fr2'},
+            e('div',{className:'fg'},e('label',{className:'fl fl-req'},'姓名'),e('input',{className:'fi',value:wp.name||'',onChange:ev=>setWp(p=>({...p,name:ev.target.value})),placeholder:'真实姓名'})),
+            e('div',{className:'fg'},e('label',{className:'fl'},'性别'),e('div',{className:'chips'},...['男','女'].map(v=>e('button',{key:v,className:`chip ${wp.gender===v?'on-r':''}`,onClick:()=>setWp(p=>({...p,gender:v}))},v))))
+          ),
+          e('div',{className:'fr2'},
+            e('div',{className:'fg'},e('label',{className:'fl'},'年龄'),e('input',{className:'fi',type:'number',value:wp.age||'',onChange:ev=>setWp(p=>({...p,age:ev.target.value})),placeholder:'如：35'})),
+            e('div',{className:'fg'},e('label',{className:'fl fl-req'},'电话'),e('input',{className:'fi',value:wp.phone||'',onChange:ev=>setWp(p=>({...p,phone:ev.target.value})),placeholder:'0412-xxx-xxx'}))
+          ),
+          e('div',{className:'fg'},e('label',{className:'fl'},'邮箱'),e('input',{className:'fi',value:wp.email||'',onChange:ev=>setWp(p=>({...p,email:ev.target.value})),placeholder:'your@email.com'})),
+          e('div',{className:'fg'},e('label',{className:'fl'},'家庭地址'),e('input',{className:'fi',value:wp.address||'',onChange:ev=>setWp(p=>({...p,address:ev.target.value})),placeholder:'详细地址'})),
+          e('div',{className:'fg'},e('label',{className:'fl'},'紧急联系人'),e('input',{className:'fi',value:wp.emergency||'',onChange:ev=>setWp(p=>({...p,emergency:ev.target.value})),placeholder:'姓名 / 电话'})),
+
+          e('div',{className:'sec-divider'},'城市偏好 ⭐ 匹配关键'),
+          e('div',{className:'fg'},e('label',{className:'fl fl-req'},'当前所在城市'),e('div',{className:'chips'},...CITIES_LIST.slice(0,6).map(c=>e('button',{key:c,className:`chip ${wp.currentCity===c?'on':''}`,onClick:()=>setWp(p=>({...p,currentCity:c}))},c)))),
+          e('div',{className:'fg'},e('label',{className:'fl fl-req'},'希望工作城市（多选）'),Chips({options:CITIES_LIST.slice(0,6),field:'workCities',obj:wp,onToggle:toggleWp})),
+
+          e('div',{className:'sec-divider'},'工作信息 ⭐ 匹配关键'),
+          e('div',{className:'fg'},e('label',{className:'fl fl-req'},'应聘工种（多选）'),Chips({options:JOB_TYPES,field:'types',obj:wp,onToggle:toggleWp})),
+          e('div',{className:'fr2'},
+            e('div',{className:'fg'},e('label',{className:'fl fl-req'},'工龄（年）'),e('input',{className:'fi',type:'number',value:wp.experience||'',onChange:ev=>setWp(p=>({...p,experience:parseInt(ev.target.value)||0})),placeholder:'如：8'})),
+            e('div',{className:'fg'},e('label',{className:'fl fl-req'},'有无交通工具'),e('div',{className:'chips'},...['有','无'].map(v=>e('button',{key:v,className:`chip ${(wp.hasVehicle?'有':'无')===v?'on':''}`,onClick:()=>setWp(p=>({...p,hasVehicle:v==='有'}))},v))))
+          ),
+          e('div',{className:'fr2'},
+            e('div',{className:'fg'},e('label',{className:'fl fl-req'},'预计时薪（A$）'),e('input',{className:'fi',type:'number',value:wp.payExpect||'',onChange:ev=>setWp(p=>({...p,payExpect:parseFloat(ev.target.value)||0})),placeholder:'如：40'})),
+            e('div',{className:'fg'},e('label',{className:'fl'},'薪资方式'),e('select',{className:'fi',value:wp.payUnit||'时',onChange:ev=>setWp(p=>({...p,payUnit:ev.target.value}))},
+              ...['时','天','周','年'].map(o=>e('option',{key:o},o))
+            ))
+          ),
+          e('div',{className:'fg'},e('label',{className:'fl'},'持有工具'),e('input',{className:'fi',value:wp.tools||'',onChange:ev=>setWp(p=>({...p,tools:ev.target.value})),placeholder:'如：电钻、砂轮机、焊机等'})),
+
+          e('div',{className:'sec-divider'},'证件上传'),
+          e('div',{className:'fg'},e('label',{className:'fl'},'驾照 / 护照'),UploadBox({fieldKey:'license',label:'证件'})),
+          e('div',{className:'fg'},
+            e('label',{className:'fl'},'工作证件描述'),
+            e('input',{className:'fi',style:{marginBottom:8},value:wp.certDesc||'',onChange:ev=>setWp(p=>({...p,certDesc:ev.target.value})),placeholder:'如：白卡、电工证、叉车证等'}),
+            UploadBox({fieldKey:'cert',label:'证件照片'})
+          ),
+          e('div',{className:'fg'},e('label',{className:'fl'},'其他补充'),e('textarea',{className:'fi',style:{minHeight:64,resize:'none',outline:'none'},value:wp.notes||'',onChange:ev=>setWp(p=>({...p,notes:ev.target.value})),placeholder:'其他技能特长、工作偏好…'}))
+        )
+      : e('div',{className:'form-sec'},
+          e('div',{className:'hint-b'},'💡 公司资料用于大数据匹配，帮助推荐最合适工人。'),
+          e('div',{className:'sec-divider'},'公司基本信息'),
+          e('div',{className:'fg'},e('label',{className:'fl fl-req'},'公司名称'),e('input',{className:'fi',value:cp.name||'',onChange:ev=>setCp(p=>({...p,name:ev.target.value})),placeholder:'公司全称'})),
+          e('div',{className:'fg'},e('label',{className:'fl fl-req'},'所在城市（多选）'),Chips({options:CITIES_LIST.slice(0,5),field:'cities',obj:cp,onToggle:toggleCp})),
+          e('div',{className:'fr2'},
+            e('div',{className:'fg'},e('label',{className:'fl fl-req'},'公司规模'),e('select',{className:'fi',value:cp.headcount||'',onChange:ev=>setCp(p=>({...p,headcount:ev.target.value}))},
+              e('option',{value:''},'请选择'),...['1-10人','10-20人','20-50人','50-200人','200人以上'].map(o=>e('option',{key:o},o))
+            )),
+            e('div',{className:'fg'},e('label',{className:'fl fl-req'},'薪资支付周期'),e('select',{className:'fi',value:cp.payDay||'',onChange:ev=>setCp(p=>({...p,payDay:ev.target.value}))},
+              e('option',{value:''},'请选择'),...['周结','两周结','月结','项目完结'].map(o=>e('option',{key:o},o))
+            ))
+          ),
+          e('div',{className:'sec-divider'},'工程内容 ⭐（多选）'),
+          e('div',{className:'fg'},e('label',{className:'fl fl-req'},'所需工种'),Chips({options:JOB_TYPES,field:'types',obj:cp,onToggle:toggleCp})),
+          e('div',{className:'sec-divider'},'招募要求'),
+          e('div',{className:'fr2'},
+            e('div',{className:'fg'},e('label',{className:'fl'},'最高时薪（A$）'),e('input',{className:'fi',type:'number',value:cp.maxPay||'',onChange:ev=>setCp(p=>({...p,maxPay:parseFloat(ev.target.value)||0})),placeholder:'如：55'})),
+            e('div',{className:'fg'},e('label',{className:'fl'},'最低工龄要求'),e('select',{className:'fi',value:cp.minExp||0,onChange:ev=>setCp(p=>({...p,minExp:parseInt(ev.target.value)||0}))},
+              e('option',{value:0},'无要求'),...[1,2,3,5,8].map(n=>e('option',{key:n,value:n},`${n}年以上`))
+            ))
+          ),
+          e('div',{className:'fg'},e('label',{className:'fl'},'公司简介'),e('textarea',{className:'fi',style:{minHeight:64,resize:'none',outline:'none'},value:cp.desc||'',onChange:ev=>setCp(p=>({...p,desc:ev.target.value})),placeholder:'公司背景、项目类型、福利待遇…'}))
+        ),
+
+    e('button',{className:`save-btn ${saved?'saved':''}`,onClick:save},
+      saved?'✅ 已保存，匹配数据已更新！':'保存资料并更新智能匹配')
+  );
+}
+
+/* ════════════════════════════
+   APP ROOT
+════════════════════════════ */
+const TABS = [
+  {key:'match',icon:'🎯',label:'找工作'},
+  {key:'checkin',icon:'📍',label:'签到'},
+  {key:'diary',icon:'📝',label:'日志'},
+  {key:'rating',icon:'⭐',label:'信誉'},
+  {key:'profile',icon:'👤',label:'我的'},
+];
+
+function App() {
+  const [tab, setTab] = useState('match');
+  const [role, setRole] = useState('worker');
+  const [workerProfile, setWorkerProfile] = useState(DEFAULT_WORKER);
+  const [companyProfile, setCompanyProfile] = useState(DEFAULT_COMPANY);
+
+  useEffect(() => {
+    const splash = document.getElementById('splash');
+    if(splash) {
+      splash.style.opacity = '0';
+      setTimeout(() => { if(splash.parentNode) splash.parentNode.removeChild(splash); }, 400);
+    }
+  }, []);
+
+  const pages = {
+    match:   e(MatchPage,   {profile:workerProfile, onGoProfile:()=>setTab('profile')}),
+    checkin: e(CheckinPage, {role}),
+    diary:   e(DiaryPage,   {role}),
+    rating:  e(RatingPage,  {role}),
+    profile: e(ProfilePage, {profile:workerProfile, setProfile:setWorkerProfile, companyProfile, setCompanyProfile, role, setRole}),
+  };
+
+  const avatarName = role==='worker'?(workerProfile.name||'我')[0]:(companyProfile.name||'公')[0];
+
+  return e('div', {className:'app'},
+    e('style', null, CSS),
+    e('div', {className:'topbar'},
+      e('div', null,
+        e('div', {className:'logo'}, '工', e('span',{className:'logo-r'},'匠'), '通'),
+        e('div', {className:'logo-sub'}, '建筑工人智慧用工平台')
+      ),
+      e('div', {className:'topbar-right'},
+        e('button', {className:`role-pill ${role==='worker'?'rp-w':'rp-c'}`, onClick:()=>setRole(r=>r==='worker'?'company':'worker')},
+          role==='worker'?'👷 工人端':'🏢 公司端'),
+        e('div', {className:'avatar', style:{background:role==='worker'?'#d4420a':'#1a4a8c'}}, avatarName)
+      )
+    ),
+    pages[tab],
+    e('div', {className:'bottom-nav'},
+      ...TABS.map(t =>
+        e('button', {key:t.key, className:`nb ${tab===t.key?'on':''}`, onClick:()=>setTab(t.key)},
+          e('span', {className:'nb-icon'}, t.icon),
+          t.label
+        )
+      )
+    )
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(e(App));
+
+
+</script>
+
+</body>
+</html>

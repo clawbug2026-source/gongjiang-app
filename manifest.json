@@ -1,0 +1,26 @@
+{
+  "name": "工匠通",
+  "short_name": "工匠通",
+  "description": "建筑工人智慧用工平台",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#1a1714",
+  "background_color": "#1a1714",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
