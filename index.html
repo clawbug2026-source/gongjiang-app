@@ -1029,127 +1029,270 @@ function WorkerDiary() {
 }
 
 function CompanyDiary() {
-  const [tasks, setTasks] = useState(CO_TASKS_INIT);
-  const [logs] = useState(WORKER_LOGS_INIT);
-  const [activeW, setActiveW] = useState('全部');
-  const [showForm, setShowForm] = useState(false);
-  const [editId, setEditId] = useState(null);
-  const [form, setForm] = useState({name:'',zone:'A区·外立面',quota:'',assignTo:'',dueTime:'18:00'});
-  const ZONES = ['A区·外立面','B区·内部结构','C区·地下层','D区·屋面','E区·附属工程'];
-  const workers = ['全部',...new Set(logs.map(l=>l.worker))];
-  const filtered = activeW==='全部'?logs:logs.filter(l=>l.worker===activeW);
-  const totalDone = logs.filter(l=>l.tasks.every(t=>t.done)).length;
-  const openAdd = () => { setForm({name:'',zone:'A区·外立面',quota:'',assignTo:'',dueTime:'18:00'}); setEditId(null); setShowForm(true); };
-  const openEdit = t => { setForm({name:t.name,zone:t.zone,quota:t.quota,assignTo:t.assignTo,dueTime:t.dueTime}); setEditId(t.id); setShowForm(true); };
-  const save = () => {
-    if(!form.name.trim()) return;
-    const color = ZC[ZONES.indexOf(form.zone)>=0?ZONES.indexOf(form.zone):0];
-    editId?setTasks(p=>p.map(t=>t.id===editId?{...t,...form,color}:t)):setTasks(p=>[...p,{id:Date.now(),...form,color}]);
-    setShowForm(false);
-  };
-  const getSt = l => { const d=l.tasks.filter(t=>t.done).length; return d===l.tasks.length?{label:'全部完成',cls:'ws-ok'}:d>0?{label:`完成${d}/${l.tasks.length}`,cls:'ws-pt'}:{label:'未完成',cls:'ws-no'}; };
+  const TASK_TYPES = ['做墙铁','做顶铁','Tbar','做木板','做外墙铁','做外墙板','打胶','铺棉','钉板','抹灰','蹭灰','杂工','管工'];
+  const ALL_WORKERS = ['张建国','刘大明','王建华','陈师傅','李师傅','赵师傅'];
+  const COLORS = ['#d4420a','#1a4a8c','#1a6b3c','#8b5cf6','#d97706','#0891b2'];
+  const [projects, setProjects] = useState(()=>_MEM.projects||[]);
+  const [view, setView] = useState('list');
+  const [selProj, setSelProj] = useState(null);
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [editTaskId, setEditTaskId] = useState(null);
+  const [taskForm, setTaskForm] = useState({name:'',area:'',quota:'',assignTo:'',dueTime:'18:00'});
+  const [projForm, setProjForm] = useState({name:'',site:'',desc:'',color:'#d4420a',workers:[]});
 
-  return e('div',null,
-    e('div',{className:'co-hd'},
-      e('div',{className:'co-hd-deco'}),
-      e('div',{className:'co-hd-title'},'工作规划 & 日志审查'),
-      e('div',{className:'co-hd-sub'},`恒大·龙湾项目 — ${new Date().toLocaleDateString('zh-CN')}`),
-      e('div',{className:'co-stats'},
-        ...[['任务',tasks.length],['工人',new Set(logs.map(l=>l.worker)).size],['全完成',totalDone],['照片',logs.reduce((a,l)=>a+l.photos.length,0)]].map(([l,n])=>
-          e('div',{key:l,className:'co-stat'},e('div',{className:'co-sn'},n),e('div',{className:'co-sl'},l))
-        )
-      )
+  const saveProjects = (p) => { _MEM.projects=p; _saveProj(); setProjects(p); };
+
+  const getProjTasks = (id) => { if(!_MEM.projectTasks)_MEM.projectTasks={}; return _MEM.projectTasks[id]||[]; };
+  const setProjTasks = (id,tasks) => {
+    if(!_MEM.projectTasks)_MEM.projectTasks={};
+    _MEM.projectTasks[id]=tasks; _saveProj();
+    setSelProj(p=>p?{...p}:p);
+  };
+
+  const proj = selProj ? (projects.find(p=>p.id===selProj.id)||selProj) : null;
+
+  /* ── CSS ── */
+  const PCSS = `
+.pj-list{padding:0 16px 20px}
+.pj-hd{display:flex;justify-content:space-between;align-items:center;padding:14px 0 10px}
+.pj-hd-label{font-size:11px;font-weight:700;color:var(--sub);letter-spacing:1px;text-transform:uppercase}
+.new-proj-btn{background:var(--b);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans SC',sans-serif;display:flex;align-items:center;gap:5px}
+.pj-card{background:var(--sur);border-radius:12px;border:1px solid var(--bd);margin-bottom:10px;overflow:hidden;box-shadow:var(--sh)}
+.pj-card-hd{padding:13px 14px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.pj-bar{width:4px;border-radius:2px;align-self:stretch;flex-shrink:0;min-height:38px}
+.pj-name{font-size:14px;font-weight:900;flex:1}
+.pj-site{font-size:11px;color:var(--sub);margin-top:2px}
+.pj-badge{font-size:10px;padding:3px 9px;border-radius:12px;font-weight:700}
+.pj-badge.active{background:#e8f5ee;color:var(--g)}
+.pj-badge.done{background:var(--s3);color:var(--sub)}
+.pj-stats{display:flex;padding:9px 14px;background:var(--s2);border-top:1px solid var(--bd);gap:18px}
+.pj-stat{font-size:10px;color:var(--sub)}.pj-stat b{font-size:13px;font-weight:700;color:var(--tx);display:block}
+.pj-acts{display:flex;gap:6px;padding:8px 14px;border-top:1px solid var(--bd)}
+.pj-act{flex:1;padding:7px;border-radius:7px;border:none;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans SC',sans-serif}
+.pja-edit{background:#e8f0ff;color:var(--b)}.pja-task{background:#e8f5ee;color:var(--g)}.pja-del{background:#fff0ec;color:var(--r)}
+.pj-form{margin:10px 16px;background:var(--sur);border-radius:12px;border:1px solid var(--bd);padding:14px 16px;box-shadow:var(--sh)}
+.pjf-title{font-size:13px;font-weight:700;margin-bottom:12px}
+.pjf-in{width:100%;padding:9px 11px;background:var(--s2);border:1px solid var(--bd);border-radius:7px;font-size:13px;color:var(--tx);outline:none;margin-bottom:8px;display:block;font-family:'Noto Sans SC',sans-serif}
+.pjf-label{font-size:11px;font-weight:700;color:var(--sub);margin-bottom:6px;margin-top:4px;display:block}
+.pjf-colors{display:flex;gap:8px;margin-bottom:12px}
+.pjf-color{width:28px;height:28px;border-radius:50%;cursor:pointer;box-sizing:border-box}
+.pjf-workers{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.pjf-w{padding:5px 12px;border-radius:18px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--bd2)}
+.pjf-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+.pjf-ok{background:var(--b);color:#fff;border:none;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans SC',sans-serif}
+.pjf-cancel{background:var(--s3);color:var(--sub);border:none;padding:9px 14px;border-radius:8px;font-size:13px;cursor:pointer;font-family:'Noto Sans SC',sans-serif}
+.pd-hd{background:linear-gradient(135deg,#1a1714,#2a1e18);color:#fff;padding:14px 16px}
+.pd-back{background:rgba(255,255,255,0.12);border:none;color:#fff;padding:5px 11px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;margin-bottom:10px;font-family:'Noto Sans SC',sans-serif}
+.pd-title{font-size:17px;font-weight:900}.pd-site{font-size:11px;color:rgba(255,255,255,0.5);margin-top:3px}
+.pd-row{display:flex;margin-top:12px;background:rgba(255,255,255,0.07);border-radius:7px;overflow:hidden}
+.pd-st{flex:1;text-align:center;padding:8px 0;border-right:1px solid rgba(255,255,255,0.07)}
+.pd-st:last-child{border-right:none}
+.pd-sn{font-size:15px;font-weight:900;color:#f5a623;font-family:'DM Mono',monospace}
+.pd-sl{font-size:9px;color:rgba(255,255,255,0.4);margin-top:1px}
+  `;
+
+  /* ── Project Form ── */
+  const ProjForm = ({isEdit}) => e('div',{className:'pj-form'},
+    e('div',{className:'pjf-title'},isEdit?'✏️ 修改项目信息':'➕ 新增项目'),
+    e('input',{className:'pjf-in',placeholder:'项目名称 *',value:projForm.name,
+      onChange:ev=>setProjForm(p=>({...p,name:ev.target.value}))}),
+    e('input',{className:'pjf-in',placeholder:'工地地址 *',value:projForm.site,
+      onChange:ev=>setProjForm(p=>({...p,site:ev.target.value}))}),
+    e('input',{className:'pjf-in',placeholder:'项目描述（选填）',value:projForm.desc,
+      onChange:ev=>setProjForm(p=>({...p,desc:ev.target.value}))}),
+    e('span',{className:'pjf-label'},'项目颜色'),
+    e('div',{className:'pjf-colors'},
+      COLORS.map(c=>e('div',{key:c,className:'pjf-color',onClick:()=>setProjForm(p=>({...p,color:c})),
+        style:{background:c,border:projForm.color===c?'3px solid #1a1714':'3px solid transparent'}}))
     ),
-    e('div',{className:'plan-sec'},
-      e('div',{className:'ps-hd'},'📌 今日任务规划'),
-      showForm
-        ? e('div',{className:'atf'},
-            e('div',{className:'atf-title'},editId?'✏️ 编辑任务':'➕ 新建任务'),
-            e('input',{className:'atf-in',placeholder:'任务名称',value:form.name,onChange:ev=>setForm(p=>({...p,name:ev.target.value}))}),
-            e('div',{className:'atf-row'},
-              e('select',{className:'atf-sel',value:form.zone,onChange:ev=>setForm(p=>({...p,zone:ev.target.value}))},
-                ...ZONES.map(o=>e('option',{key:o},o))),
-              e('select',{className:'atf-sel',value:form.assignTo,onChange:ev=>setForm(p=>({...p,assignTo:ev.target.value}))},
-                e('option',{value:''},'指派工人'),
-                ...['张建国','刘大明','王建华','陈师傅','李师傅'].map(o=>e('option',{key:o},o)))
-            ),
-            e('input',{className:'atf-in',style:{marginBottom:6},placeholder:'截止时间 如：18:00',value:form.dueTime,onChange:ev=>setForm(p=>({...p,dueTime:ev.target.value}))}),
-            e('textarea',{className:'atf-ta',placeholder:'每日达标要求…',value:form.quota,onChange:ev=>setForm(p=>({...p,quota:ev.target.value}))}),
-            e('div',{className:'atf-foot'},
-              e('button',{className:'atf-cancel',onClick:()=>setShowForm(false)},'取消'),
-              e('button',{className:'atf-ok',onClick:save},editId?'保存':'添加')
-            )
-          )
-        : e('button',{className:'add-btn',onClick:openAdd},e('span',{style:{fontSize:16}},'＋'),'新建今日工作任务'),
-      ...tasks.map(t=>
-        e('div',{key:t.id,className:'ptask'},
-          e('div',{className:'ptask-hd'},
-            e('div',{className:'ptask-bar',style:{background:t.color}}),
-            e('div',{className:'ptask-info'},
-              e('div',{className:'ptask-name'},t.name),
-              e('div',{className:'ptask-zone',style:{color:t.color}},`📍 ${t.zone}`),
-              t.quota&&e('div',{className:'ptask-std'},`⚠️ ${t.quota}`)
-            ),
-            e('div',{className:'ptask-acts'},
-              e('button',{className:'ptask-btn ptask-edit',onClick:()=>openEdit(t)},'编辑'),
-              e('button',{className:'ptask-btn ptask-del',onClick:()=>setTasks(p=>p.filter(x=>x.id!==t.id))},'删除')
-            )
-          ),
-          e('div',{className:'ptask-ft'},
-            e('span',{className:'ptask-assign',style:{color:'var(--sub)'}},
-              '指派：',e('b',{style:{color:'var(--b)'}},t.assignTo||'未指派')),
-            e('span',{style:{color:'var(--sub)'}},`截止 ${t.dueTime}`),
-            logs.some(l=>l.worker===t.assignTo&&l.tasks.some(lt=>lt.name===t.name&&lt.done))
-              ?e('span',{style:{marginLeft:'auto',fontSize:10,color:'var(--g)',fontWeight:700}},'✅ 已完成')
-              :e('span',{style:{marginLeft:'auto',fontSize:10,color:'var(--r)',fontWeight:600}},'⏳ 待完成')
-          )
-        )
-      )
+    e('span',{className:'pjf-label'},'指派工人（可多选）'),
+    e('div',{className:'pjf-workers'},
+      ALL_WORKERS.map(w=>{
+        const sel = projForm.workers.includes(w);
+        return e('div',{key:w,className:'pjf-w',onClick:()=>setProjForm(p=>({...p,workers:sel?p.workers.filter(x=>x!==w):[...p.workers,w]})),
+          style:{background:sel?'var(--b)':'var(--s3)',color:sel?'#fff':'var(--sub)',border:'1px solid '+(sel?'var(--b)':'var(--bd2)')}},w);
+      })
     ),
-    e('div',{className:'plan-sec',style:{paddingTop:0}},
-      e('div',{className:'ps-hd'},'📊 工人日志审查'),
-      e('div',{className:'wtabs'},
-        ...workers.map(w=>
-          e('button',{key:w,className:`wtab ${activeW===w?'on':''}`,onClick:()=>setActiveW(w)},
-            w!=='全部'&&e('span',{className:'wdot',style:{background:logs.find(l=>l.worker===w)?.color||'#888'}}),
-            w)
-        )
+    e('div',{className:'pjf-foot'},
+      e('button',{className:'pjf-cancel',onClick:()=>setView('list')},'取消'),
+      e('button',{className:'pjf-ok',onClick:()=>{
+        if(!projForm.name.trim()||!projForm.site.trim())return;
+        if(isEdit){
+          saveProjects(projects.map(p=>p.id===selProj.id?{...p,...projForm}:p));
+        } else {
+          saveProjects([...projects,{id:Date.now(),status:'active',startDate:new Date().toISOString().slice(0,10),...projForm}]);
+        }
+        setView('list');
+      }},isEdit?'保存修改':'创建项目')
+    )
+  );
+
+  /* ── List View ── */
+  if(view==='list') return e('div',{className:'page'},
+    e('style',null,PCSS),
+    e('div',{className:'pj-list'},
+      e('div',{className:'pj-hd'},
+        e('span',{className:'pj-hd-label'},'项目 / 工地'),
+        e('button',{className:'new-proj-btn',onClick:()=>{
+          setProjForm({name:'',site:'',desc:'',color:COLORS[0],workers:[]});
+          setView('addProj');
+        }},e('span',null,'＋'),'新增项目')
       ),
-      ...filtered.map(log=>{
-        const st=getSt(log);
-        return e('div',{key:log.id,className:'wlog'},
-          e('div',{className:'wlog-hd'},
-            e('div',{className:'wlog-av',style:{background:log.color}},log.worker[0]),
-            e('div',{className:'wlog-name'},log.worker),
-            e('span',{className:'wlog-date'},log.date),
-            e('span',{className:`wlog-st ${st.cls}`},st.label)
-          ),
-          e('div',{className:'wlog-body'},
-            e('div',{className:'wlog-txt'},log.content),
-            e('div',{className:'wlog-tasks'},
-              ...log.tasks.map((t,i)=>
-                e('div',{key:i,className:'wlog-ti'},
-                  e('div',{className:'wlog-dot',style:{background:t.done?'var(--g)':'var(--r)'}}),
-                  e('span',{style:{color:t.done?'var(--g)':'var(--r)',fontWeight:700}},t.done?'✓':'✗'),
-                  e('span',null,t.name)
-                )
-              )
+      projects.length===0&&e('div',{style:{textAlign:'center',padding:'40px 20px',color:'var(--sub)'}},
+        e('div',{style:{fontSize:44,marginBottom:10}},'🏗️'),
+        e('div',{style:{fontSize:13}},'暂无项目，点击上方新增')
+      ),
+      projects.map(p=>{
+        const tasks=getProjTasks(p.id);
+        const done=tasks.filter(t=>t.done).length;
+        return e('div',{key:p.id,className:'pj-card'},
+          e('div',{className:'pj-card-hd',onClick:()=>{setSelProj(p);setView('detail');setShowTaskForm(false);}},
+            e('div',{className:'pj-bar',style:{background:p.color}}),
+            e('div',{style:{flex:1}},
+              e('div',{className:'pj-name'},p.name),
+              e('div',{className:'pj-site'},'📍 '+p.site)
             ),
-            log.photos.length>0&&e('div',{style:{display:'flex',gap:5,marginTop:7,alignItems:'center'}},
-              ...log.photos.map((p,i)=>e('div',{key:i,style:{width:48,height:48,borderRadius:6,border:'1px solid var(--bd)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,background:'var(--s3)'}},p)),
-              e('span',{style:{fontSize:10,color:'var(--sub)',marginLeft:4}},`${log.photos.length}张照片`)
-            )
+            e('span',{className:'pj-badge '+(p.status==='active'?'active':'done')},p.status==='active'?'进行中':'已完成')
           ),
-          e('div',{className:'wlog-ft'},
-            e('span',{className:'wlog-stat'},`⏱ `,e('span',null,`${log.hours}h`)),
-            e('span',{className:'wlog-stat'},`📸 `,e('span',null,`${log.photos.length}张`)),
-            e('button',{className:'wlog-cmt'},'💬 批注')
+          e('div',{className:'pj-stats'},
+            e('div',{className:'pj-stat'},e('b',null,p.workers.length),'人'),
+            e('div',{className:'pj-stat'},e('b',null,tasks.length),'任务'),
+            e('div',{className:'pj-stat'},e('b',null,done),'完成'),
+            e('div',{className:'pj-stat'},e('b',null,p.startDate||'—'),'开始')
+          ),
+          e('div',{className:'pj-acts'},
+            e('button',{className:'pj-act pja-edit',onClick:ev=>{ev.stopPropagation();setProjForm({name:p.name,site:p.site,desc:p.desc||'',color:p.color,workers:p.workers||[]});setSelProj(p);setView('editProj');}},'✏️ 修改项目'),
+            e('button',{className:'pj-act pja-task',onClick:ev=>{ev.stopPropagation();setSelProj(p);setView('detail');setShowTaskForm(true);}},'＋ 派发任务'),
+            e('button',{className:'pj-act pja-del',onClick:ev=>{ev.stopPropagation();saveProjects(projects.filter(x=>x.id!==p.id));}},'删除')
           )
         );
       })
     )
   );
+
+  /* ── Add/Edit Project Form ── */
+  if(view==='addProj'||view==='editProj') return e('div',{className:'page'},
+    e('style',null,PCSS),
+    e('div',{style:{display:'flex',alignItems:'center',gap:10,padding:'14px 16px 0'}},
+      e('button',{style:{background:'none',border:'none',fontSize:22,cursor:'pointer',color:'var(--sub)'},onClick:()=>setView('list')},'←'),
+      e('div',{style:{fontSize:16,fontWeight:900}},view==='editProj'?'修改项目信息':'新增项目')
+    ),
+    e(ProjForm,{isEdit:view==='editProj'})
+  );
+
+  /* ── Detail View ── */
+  if(view==='detail'&&proj) {
+    const projTasks = getProjTasks(proj.id);
+    const done = projTasks.filter(t=>t.done).length;
+    const logs = WORKER_LOGS_INIT;
+    return e('div',{className:'page'},
+      e('style',null,PCSS),
+      e('div',{className:'pd-hd'},
+        e('button',{className:'pd-back',onClick:()=>setView('list')},'← 返回项目列表'),
+        e('div',{className:'pd-title'},proj.name),
+        e('div',{className:'pd-site'},'📍 '+proj.site+(proj.desc?' · '+proj.desc:'')),
+        e('div',{className:'pd-row'},
+          [['工人',proj.workers.length],['任务',projTasks.length],['完成',done],['进行',projTasks.length-done]].map(([l,n])=>
+            e('div',{key:l,className:'pd-st'},e('div',{className:'pd-sn'},n),e('div',{className:'pd-sl'},l))
+          )
+        )
+      ),
+      e('div',{style:{display:'flex',gap:8,padding:'10px 16px 0'}},
+        e('button',{style:{flex:1,padding:8,borderRadius:8,border:'none',background:'#e8f0ff',color:'var(--b)',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"},
+          onClick:()=>{setProjForm({name:proj.name,site:proj.site,desc:proj.desc||'',color:proj.color,workers:proj.workers||[]});setView('editProj');}},'✏️ 修改项目信息'),
+        e('button',{style:{padding:'8px 12px',borderRadius:8,border:'none',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif",
+          background:proj.status==='active'?'#fff0ec':'#e8f5ee',color:proj.status==='active'?'var(--r)':'var(--g)'},
+          onClick:()=>saveProjects(projects.map(p=>p.id===proj.id?{...p,status:p.status==='active'?'done':'active'}:p))},
+          proj.status==='active'?'归档':'重开')
+      ),
+      e('div',{style:{padding:'0 16px'}},
+        e('div',{style:{fontSize:11,fontWeight:700,color:'var(--sub)',letterSpacing:1,textTransform:'uppercase',margin:'14px 0 8px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
+          e('span',null,'📌 任务'),
+          e('button',{style:{background:'var(--g)',color:'#fff',border:'none',padding:'5px 12px',borderRadius:6,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"},
+            onClick:()=>{setTaskForm({name:'',area:'',quota:'',assignTo:'',dueTime:'18:00'});setEditTaskId(null);setShowTaskForm(true);}},'＋ 派发任务')
+        ),
+        showTaskForm&&e('div',{className:'atf',style:{marginBottom:10}},
+          e('div',{className:'atf-title'},editTaskId?'✏️ 编辑任务':'➕ 派发新任务'),
+          e('select',{className:'atf-sel',style:{width:'100%',marginBottom:6},value:taskForm.name,onChange:ev=>setTaskForm(f=>({...f,name:ev.target.value}))},
+            e('option',{value:''},'选择工作类型 *'),
+            TASK_TYPES.map(o=>e('option',{key:o},o))
+          ),
+          e('input',{className:'atf-in',placeholder:'区域（如：A区外墙）',value:taskForm.area,onChange:ev=>setTaskForm(f=>({...f,area:ev.target.value}))}),
+          e('div',{className:'atf-row'},
+            e('select',{className:'atf-sel',value:taskForm.assignTo,onChange:ev=>setTaskForm(f=>({...f,assignTo:ev.target.value}))},
+              e('option',{value:''},'指派工人'),
+              proj.workers.map(w=>e('option',{key:w},w))
+            ),
+            e('input',{className:'atf-sel',placeholder:'截止时间',value:taskForm.dueTime,onChange:ev=>setTaskForm(f=>({...f,dueTime:ev.target.value}))})
+          ),
+          e('textarea',{className:'atf-ta',placeholder:'达标要求（选填）',value:taskForm.quota,onChange:ev=>setTaskForm(f=>({...f,quota:ev.target.value}))}),
+          e('div',{className:'atf-foot'},
+            e('button',{className:'atf-cancel',onClick:()=>{setShowTaskForm(false);setEditTaskId(null);}},'取消'),
+            e('button',{className:'atf-ok',onClick:()=>{
+              if(!taskForm.name)return;
+              const newTasks = editTaskId
+                ? projTasks.map(t=>t.id===editTaskId?{...t,...taskForm}:t)
+                : [...projTasks,{id:Date.now(),...taskForm,done:false,color:proj.color}];
+              setProjTasks(proj.id,newTasks);
+              setShowTaskForm(false);setEditTaskId(null);
+            }},editTaskId?'保存':'派发')
+          )
+        ),
+        projTasks.length===0&&!showTaskForm&&e('div',{style:{padding:'12px 0',textAlign:'center',color:'var(--sub)',fontSize:12}},'暂无任务，点击上方派发'),
+        projTasks.map(t=>e('div',{key:t.id,className:'ptask'},
+          e('div',{className:'ptask-hd'},
+            e('div',{className:'ptask-bar',style:{background:t.color||proj.color}}),
+            e('div',{className:'ptask-info'},
+              e('div',{className:'ptask-name'},t.name),
+              t.area&&e('div',{className:'ptask-zone',style:{color:t.color||proj.color}},'📍 '+t.area),
+              t.quota&&e('div',{className:'ptask-std'},'⚠️ '+t.quota)
+            ),
+            e('div',{className:'ptask-acts'},
+              e('button',{className:'ptask-btn ptask-edit',onClick:()=>{setTaskForm({name:t.name,area:t.area||'',quota:t.quota||'',assignTo:t.assignTo||'',dueTime:t.dueTime||'18:00'});setEditTaskId(t.id);setShowTaskForm(true);}},'编辑'),
+              e('button',{className:'ptask-btn',style:{background:t.done?'#e8f5ee':'#e8f0ff',color:t.done?'var(--g)':'var(--b)'},
+                onClick:()=>{setProjTasks(proj.id,projTasks.map(x=>x.id===t.id?{...x,done:!x.done}:x));}},(t.done?'✅':'○')+' '+(t.done?'已完成':'标完成')),
+              e('button',{className:'ptask-btn ptask-del',onClick:()=>setProjTasks(proj.id,projTasks.filter(x=>x.id!==t.id))},'删除')
+            )
+          ),
+          e('div',{className:'ptask-ft'},
+            e('span',{style:{color:'var(--sub)'}},'指派：',e('b',{style:{color:'var(--b)'}},t.assignTo||'未指派')),
+            e('span',{style:{color:'var(--sub)'}},'截止 '+t.dueTime),
+            t.done?e('span',{style:{marginLeft:'auto',fontSize:10,color:'var(--g)',fontWeight:700}},'✅ 已完成')
+                  :e('span',{style:{marginLeft:'auto',fontSize:10,color:'var(--r)',fontWeight:600}},'⏳ 待完成')
+          )
+        ))
+      ),
+      e('div',{style:{padding:'0 16px 20px'}},
+        e('div',{style:{fontSize:11,fontWeight:700,color:'var(--sub)',letterSpacing:1,textTransform:'uppercase',margin:'14px 0 8px'}},'📋 工人日志'),
+        logs.length===0&&e('div',{style:{textAlign:'center',padding:16,color:'var(--sub)',fontSize:12}},'暂无日志'),
+        logs.map(log=>{
+          const done=log.tasks.filter(t=>t.done).length;
+          const st=done===log.tasks.length?{l:'全部完成',c:'ws-ok'}:done>0?{l:'部分完成',c:'ws-pt'}:{l:'未完成',c:'ws-no'};
+          return e('div',{key:log.id,className:'wlog'},
+            e('div',{className:'wlog-hd'},
+              e('div',{className:'wlog-av',style:{background:log.color}},log.worker[0]),
+              e('div',{className:'wlog-name'},log.worker),
+              e('span',{className:'wlog-date'},log.date),
+              e('span',{className:'wlog-st '+st.c},st.l)
+            ),
+            e('div',{className:'wlog-body'},
+              e('div',{className:'wlog-txt'},log.content),
+              e('div',{className:'wlog-tasks'},
+                log.tasks.map((t,i)=>e('div',{key:i,className:'wlog-ti'},
+                  e('div',{className:'wlog-dot',style:{background:t.done?'var(--g)':'var(--r)'}}),
+                  e('span',{style:{color:t.done?'var(--g)':'var(--r)',fontWeight:700}},t.done?'✓':'✗'),
+                  e('span',null,t.name)
+                ))
+              )
+            )
+          );
+        })
+      )
+    );
+  }
+  return e('div',{className:'page'},e('div',{style:{padding:20,color:'var(--sub)'}},'加载中…'));
 }
+
 
 /* ════════════════════════════
    4. RATING PAGE
