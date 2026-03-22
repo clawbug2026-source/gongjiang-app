@@ -32,7 +32,20 @@ html,body{height:100%;background:#1a1714;overscroll-behavior:none;-webkit-tap-hi
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script>
+<script>// ── GLOBAL MEMORY STORE (must be first) ──
+const _MEM = { users: [], current: null, punches: {} };
+(function(){
+  try {
+    var u = localStorage.getItem('__gj_users__');
+    var c = localStorage.getItem('__gj_current__');
+    var p = localStorage.getItem('__gj_p__');
+    if(u) _MEM.users = JSON.parse(u);
+    if(c) _MEM.current = JSON.parse(c);
+    if(p) _MEM.punches = JSON.parse(p);
+  } catch(e) {}
+})();
+
+
 'use strict';
 
 const e = React.createElement;
@@ -684,8 +697,7 @@ function MatchPage({profile, onGoProfile}) {
 ════════════════════════════ */
 
 /* ── PUNCH & GPS HELPERS ── */
-if (!_MEM.punches) { _MEM.punches = {}; }
-try { var _sp = localStorage.getItem('__gj_p__'); if (_sp) _MEM.punches = JSON.parse(_sp); } catch(e) {}
+// punches already in _MEM
 function _savep() { try { localStorage.setItem('__gj_p__', JSON.stringify(_MEM.punches)); } catch(e) {} }
 function _wklabel(ds) {
   var d = new Date(ds), day = d.getDay(), adj = (day-3+7)%7;
@@ -1492,7 +1504,7 @@ function ProfilePage(props) {
     e('button',{className:`save-btn ${saved?'saved':''}`,onClick:save},
       saved?'✅ 已保存，匹配数据已更新！':'保存资料并更新智能匹配'),
     e('button',{
-      onClick:()=>{ if(typeof props.onLogout==='function') props.onLogout(); },
+      onClick:function(){ if(props && typeof props.onLogout==='function') props.onLogout(); },
       style:{margin:'0 16px 24px',width:'calc(100% - 32px)',padding:'12px',borderRadius:10,border:'1px solid var(--bd)',background:'var(--s3)',color:'var(--sub)',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"}
     },'退出登录')
   );
@@ -1502,6 +1514,13 @@ function ProfilePage(props) {
    AUTH SYSTEM
 ════════════════════════════ */
 const AUTH_CSS = `
+:root{
+  --bg:#f5f3ee;--sur:#fff;--s2:#faf9f6;--s3:#f0ece4;
+  --bd:#e8e4dc;--bd2:#d4cfc4;--tx:#1a1714;--sub:#7a7267;
+  --r:#d4420a;--g:#1a6b3c;--b:#1a4a8c;--y:#f5a623;
+  --sh:0 2px 12px rgba(0,0,0,0.08);
+}
+
 .auth-wrap{position:fixed;inset:0;background:#1a1714;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;animation:fadeIn 0.3s ease}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .auth-logo{font-size:52px;font-weight:900;color:#fff;letter-spacing:-2px;margin-bottom:6px;text-align:center}
@@ -1541,17 +1560,7 @@ const AUTH_CSS = `
 .auth-dot.on{background:#d4420a;width:18px;border-radius:3px}
 `;
 
-// In-memory user database (works in all WebView/APK environments)
-const _MEM = { users: [], current: null };
-// Try to restore from localStorage if available
-(function(){
-  try {
-    const u = localStorage.getItem('__gj_users__');
-    const c = localStorage.getItem('__gj_current__');
-    if(u) _MEM.users = JSON.parse(u);
-    if(c) _MEM.current = JSON.parse(c);
-  } catch(e) {}
-})();
+// _MEM defined at top of file
 function getUsers() { return _MEM.users; }
 function saveUsers(u) {
   _MEM.users = u;
@@ -1820,30 +1829,34 @@ function App() {
   if(!authUser) {
     if(authScreen==='welcome') return e('div',null,
       e('style',null,AUTH_CSS),
-      WelcomeScreen({
+      e(WelcomeScreen,{
         onLogin:()=>setAuthScreen('login'),
         onRegister:(r)=>{setInitRole(r);setAuthScreen('register');}
       })
     );
     if(authScreen==='login') return e('div',null,
       e('style',null,AUTH_CSS),
-      LoginScreen({
+      e(LoginScreen,{
         onBack:()=>setAuthScreen('welcome'),
         onDone:handleAuthDone
       })
     );
     if(authScreen==='register') return e('div',null,
       e('style',null,AUTH_CSS),
-      RegisterScreen({
+      e(RegisterScreen,{
         initRole,
         onBack:()=>setAuthScreen('welcome'),
         onDone:handleAuthDone
       })
     );
+    return e('div',null,e('style',null,AUTH_CSS),e(WelcomeScreen,{
+      onLogin:()=>setAuthScreen('login'),
+      onRegister:(r)=>{setInitRole(r);setAuthScreen('register');}
+    }));
   }
 
   // ── MAIN APP ──
-  const role = authUser.role;
+  const role = authUser ? authUser.role : 'worker';
   const isWorker = role === 'worker';
   const TABS = isWorker ? TABS_WORKER : TABS_COMPANY;
 
@@ -1864,7 +1877,7 @@ function App() {
     }),
   };
 
-  const avatarName = (authUser.name||'我')[0];
+  const avatarName = (authUser && authUser.name ? authUser.name : '我')[0];
 
   return e('div', {className:'app'},
     e('style', null, CSS),
