@@ -1645,375 +1645,146 @@ function RatingPage({role}) {
 /* ════════════════════════════
    5. PROFILE PAGE
 ════════════════════════════ */
-function ProfilePage(props) {
-  const {profile, setProfile, companyProfile, setCompanyProfile, role, setRole} = props;
-
+function WorkerProfilePage({profile, setProfile, onLogout}) {
   const [saved, setSaved] = useState(false);
   const [wp, setWp] = useState(profile);
-  const [cp, setCp] = useState(companyProfile);
   const [uploads, setUploads] = useState({});
   const simulateUpload = key => { setUploads(p=>({...p,[key]:'loading'})); setTimeout(()=>setUploads(p=>({...p,[key]:'done'})),800); };
   const toggleWp = (field, val) => setWp(p=>({...p,[field]:(p[field]||[]).includes(val)?(p[field]||[]).filter(x=>x!==val):[...(p[field]||[]),val]}));
-  const toggleCp = (field, val) => setCp(p=>({...p,[field]:(p[field]||[]).includes(val)?(p[field]||[]).filter(x=>x!==val):[...(p[field]||[]),val]}));
-  const save = () => { if(role==='worker')setProfile(wp); else setCompanyProfile(cp); setSaved(true); setTimeout(()=>setSaved(false),2500); };
-
-  const Chips = ({options, field, obj, onToggle, mode='b'}) =>
-    e('div',{className:'chips'},
-      ...options.map(v=>e('button',{key:v,className:`chip ${ (obj[field]||[]).includes(v)?(mode==='r'?'on-r':'on'):''}`,onClick:()=>onToggle(field,v)},v))
-    );
+  const save = () => { setProfile(wp); setSaved(true); setTimeout(()=>setSaved(false),2500); };
 
   const UploadBox = ({fieldKey, label}) =>
     uploads[fieldKey]==='done'
-      ? e('div',{className:'upload-done'},`✅ ${label}已上传`)
+      ? e('div',{className:'upload-done'},'✅ '+label+'已上传')
       : e('div',{className:'upload-box',onClick:()=>simulateUpload(fieldKey)},
           e('span',{style:{fontSize:22,flexShrink:0}},uploads[fieldKey]==='loading'?'⏳':'📄'),
-          e('div',null,e('b',{style:{display:'block',fontSize:12,marginBottom:2}},uploads[fieldKey]==='loading'?'上传中…':'点击上传文件'),e('span',{style:{fontSize:11,color:'var(--sub)'}},'支持 JPG, PNG, PDF（最大10MB）'))
+          e('div',null,e('b',{style:{display:'block',fontSize:12,marginBottom:2}},uploads[fieldKey]==='loading'?'上传中…':'点击上传文件'),
+            e('span',{style:{fontSize:11,color:'var(--sub)'}},'支持 JPG, PNG, PDF'))
         );
 
-  const curName = role==='worker'?(wp.name||'我'):(cp.name||'公司');
-  const curMeta = role==='worker'
-    ?`${(wp.types||[]).join('·')||'未填工种'} · ${wp.experience||'?'}年 · ${wp.currentCity||'未填'}`
-    :`${(cp.types||[]).join('·')||'未填工程'} · ${(cp.cities||[]).join('、')||'未填城市'}`;
+  const Chips = ({options,field,obj,onToggle,mode='b'}) =>
+    e('div',{className:'chips'},
+      ...options.map(v=>e('button',{key:v,className:'chip '+((obj[field]||[]).includes(v)?(mode==='r'?'on-r':'on'):''),onClick:()=>onToggle(field,v)},v))
+    );
 
   return e('div',{className:'page'},
     e('div',{className:'ph-hero'},
       e('div',{className:'ph-deco'}),
-      e('div',{className:'ph-av'},curName[0]),
-      e('div',{className:'ph-name'},curName),
-      e('div',{className:'ph-meta'},curMeta),
+      e('div',{className:'ph-av'},(wp.name||'我')[0]),
+      e('div',{className:'ph-name'},wp.name||'（请填写姓名）'),
+      e('div',{className:'ph-meta'},(wp.types||[]).join('·')||'未填工种'+' · '+(wp.experience||'?')+'年 · '+(wp.currentCity||'未填')),
       e('div',{className:'ph-stats'},
-        ...(role==='worker'
-          ?[['4.8','信誉分'],['98%','出勤率'],['312','工时'],['26','日志']]
-          :[[cp.headcount||'—','规模'],['4.8','信誉分'],['3','在建项目'],['98%','准时率']]
-        ).map(([n,l])=>e('div',{key:l,className:'ph-st'},e('div',{className:'ph-sn'},n),e('div',{className:'ph-sl'},l)))
+        ...[['4.8','信誉分'],['98%','出勤率'],['312','工时'],['26','日志']]
+          .map(([n,l])=>e('div',{key:l,className:'ph-st'},e('div',{className:'ph-sn'},n),e('div',{className:'ph-sl'},l)))
       )
     ),
-
-
-
-    role==='worker'
-      ? e('div',{className:'form-sec'},
-          e('div',{className:'hint-b'},'💡 标 * 字段为匹配关键项，资料越完整推荐越精准！'),
-
-          e('div',{className:'sec-divider'},'基本信息'),
-          e('div',{className:'fr2'},
-            e('div',{className:'fg'},e('label',{className:'fl fl-req'},'姓名'),e('input',{className:'fi',value:wp.name||'',onChange:ev=>setWp(p=>({...p,name:ev.target.value})),placeholder:'真实姓名'})),
-            e('div',{className:'fg'},e('label',{className:'fl'},'性别'),e('div',{className:'chips'},...['男','女'].map(v=>e('button',{key:v,className:`chip ${wp.gender===v?'on-r':''}`,onClick:()=>setWp(p=>({...p,gender:v}))},v))))
-          ),
-          e('div',{className:'fr2'},
-            e('div',{className:'fg'},e('label',{className:'fl'},'年龄'),e('input',{className:'fi',type:'number',value:wp.age||'',onChange:ev=>setWp(p=>({...p,age:ev.target.value})),placeholder:'如：35'})),
-            e('div',{className:'fg'},e('label',{className:'fl fl-req'},'电话'),e('input',{className:'fi',value:wp.phone||'',onChange:ev=>setWp(p=>({...p,phone:ev.target.value})),placeholder:'0412-xxx-xxx'}))
-          ),
-          e('div',{className:'fg'},e('label',{className:'fl'},'邮箱'),e('input',{className:'fi',value:wp.email||'',onChange:ev=>setWp(p=>({...p,email:ev.target.value})),placeholder:'your@email.com'})),
-          e('div',{className:'fg'},e('label',{className:'fl'},'家庭地址'),e('input',{className:'fi',value:wp.address||'',onChange:ev=>setWp(p=>({...p,address:ev.target.value})),placeholder:'详细地址'})),
-          e('div',{className:'fg'},e('label',{className:'fl'},'紧急联系人'),e('input',{className:'fi',value:wp.emergency||'',onChange:ev=>setWp(p=>({...p,emergency:ev.target.value})),placeholder:'姓名 / 电话'})),
-
-          e('div',{className:'sec-divider'},'城市偏好 ⭐ 匹配关键'),
-          e('div',{className:'fg'},e('label',{className:'fl fl-req'},'当前所在城市'),e('div',{className:'chips'},...CITIES_LIST.slice(0,6).map(c=>e('button',{key:c,className:`chip ${wp.currentCity===c?'on':''}`,onClick:()=>setWp(p=>({...p,currentCity:c}))},c)))),
-          e('div',{className:'fg'},e('label',{className:'fl fl-req'},'希望工作城市（多选）'),Chips({options:CITIES_LIST.slice(0,6),field:'workCities',obj:wp,onToggle:toggleWp})),
-
-          e('div',{className:'sec-divider'},'工作信息 ⭐ 匹配关键'),
-          e('div',{className:'fg'},e('label',{className:'fl fl-req'},'应聘工种（多选）'),Chips({options:JOB_TYPES,field:'types',obj:wp,onToggle:toggleWp})),
-          e('div',{className:'fr2'},
-            e('div',{className:'fg'},e('label',{className:'fl fl-req'},'工龄（年）'),e('input',{className:'fi',type:'number',value:wp.experience||'',onChange:ev=>setWp(p=>({...p,experience:parseInt(ev.target.value)||0})),placeholder:'如：8'})),
-            e('div',{className:'fg'},e('label',{className:'fl fl-req'},'有无交通工具'),e('div',{className:'chips'},...['有','无'].map(v=>e('button',{key:v,className:`chip ${(wp.hasVehicle?'有':'无')===v?'on':''}`,onClick:()=>setWp(p=>({...p,hasVehicle:v==='有'}))},v))))
-          ),
-          e('div',{className:'fr2'},
-            e('div',{className:'fg'},e('label',{className:'fl fl-req'},'预计时薪（A$）'),e('input',{className:'fi',type:'number',value:wp.payExpect||'',onChange:ev=>setWp(p=>({...p,payExpect:parseFloat(ev.target.value)||0})),placeholder:'如：40'})),
-            e('div',{className:'fg'},e('label',{className:'fl'},'薪资方式'),e('select',{className:'fi',value:wp.payUnit||'时',onChange:ev=>setWp(p=>({...p,payUnit:ev.target.value}))},
-              ...['时','天','周','年'].map(o=>e('option',{key:o},o))
-            ))
-          ),
-          e('div',{className:'fg'},e('label',{className:'fl'},'持有工具'),e('input',{className:'fi',value:wp.tools||'',onChange:ev=>setWp(p=>({...p,tools:ev.target.value})),placeholder:'如：电钻、砂轮机、焊机等'})),
-
-          e('div',{className:'sec-divider'},'证件上传'),
-          e('div',{className:'fg'},e('label',{className:'fl'},'驾照 / 护照'),UploadBox({fieldKey:'license',label:'证件'})),
-          e('div',{className:'fg'},
-            e('label',{className:'fl'},'工作证件描述'),
-            e('input',{className:'fi',style:{marginBottom:8},value:wp.certDesc||'',onChange:ev=>setWp(p=>({...p,certDesc:ev.target.value})),placeholder:'如：白卡、电工证、叉车证等'}),
-            UploadBox({fieldKey:'cert',label:'证件照片'})
-          ),
-          e('div',{className:'fg'},e('label',{className:'fl'},'其他补充'),e('textarea',{className:'fi',style:{minHeight:64,resize:'none',outline:'none'},value:wp.notes||'',onChange:ev=>setWp(p=>({...p,notes:ev.target.value})),placeholder:'其他技能特长、工作偏好…'}))
-        )
-      : e('div',{className:'form-sec'},
-          e('div',{className:'hint-b'},'💡 公司资料用于大数据匹配，帮助推荐最合适工人。'),
-          e('div',{className:'sec-divider'},'公司基本信息'),
-          e('div',{className:'fg'},e('label',{className:'fl fl-req'},'公司名称'),e('input',{className:'fi',value:cp.name||'',onChange:ev=>setCp(p=>({...p,name:ev.target.value})),placeholder:'公司全称'})),
-          e('div',{className:'fg'},e('label',{className:'fl fl-req'},'所在城市（多选）'),Chips({options:CITIES_LIST.slice(0,5),field:'cities',obj:cp,onToggle:toggleCp})),
-          e('div',{className:'fr2'},
-            e('div',{className:'fg'},e('label',{className:'fl fl-req'},'公司规模'),e('select',{className:'fi',value:cp.headcount||'',onChange:ev=>setCp(p=>({...p,headcount:ev.target.value}))},
-              e('option',{value:''},'请选择'),...['1-10人','10-20人','20-50人','50-200人','200人以上'].map(o=>e('option',{key:o},o))
-            )),
-            e('div',{className:'fg'},e('label',{className:'fl fl-req'},'薪资支付周期'),e('select',{className:'fi',value:cp.payDay||'',onChange:ev=>setCp(p=>({...p,payDay:ev.target.value}))},
-              e('option',{value:''},'请选择'),...['周结','两周结','月结','项目完结'].map(o=>e('option',{key:o},o))
-            ))
-          ),
-          e('div',{className:'sec-divider'},'工程内容 ⭐（多选）'),
-          e('div',{className:'fg'},e('label',{className:'fl fl-req'},'所需工种'),Chips({options:JOB_TYPES,field:'types',obj:cp,onToggle:toggleCp})),
-          e('div',{className:'sec-divider'},'招募要求'),
-          e('div',{className:'fr2'},
-            e('div',{className:'fg'},e('label',{className:'fl'},'最高时薪（A$）'),e('input',{className:'fi',type:'number',value:cp.maxPay||'',onChange:ev=>setCp(p=>({...p,maxPay:parseFloat(ev.target.value)||0})),placeholder:'如：55'})),
-            e('div',{className:'fg'},e('label',{className:'fl'},'最低工龄要求'),e('select',{className:'fi',value:cp.minExp||0,onChange:ev=>setCp(p=>({...p,minExp:parseInt(ev.target.value)||0}))},
-              e('option',{value:0},'无要求'),...[1,2,3,5,8].map(n=>e('option',{key:n,value:n},`${n}年以上`))
-            ))
-          ),
-          e('div',{className:'fg'},e('label',{className:'fl'},'公司简介'),e('textarea',{className:'fi',style:{minHeight:64,resize:'none',outline:'none'},value:cp.desc||'',onChange:ev=>setCp(p=>({...p,desc:ev.target.value})),placeholder:'公司背景、项目类型、福利待遇…'}))
-        ),
-
-    e('button',{className:`save-btn ${saved?'saved':''}`,onClick:save},
-      saved?'✅ 已保存，匹配数据已更新！':'保存资料并更新智能匹配'),
-    e('button',{
-      onClick:()=>{ if(typeof props.onLogout==='function') props.onLogout(); },
-      style:{margin:'0 16px 24px',width:'calc(100% - 32px)',padding:'12px',borderRadius:10,border:'1px solid var(--bd)',background:'var(--s3)',color:'var(--sub)',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"}
-    },'退出登录')
-  );
-}
-
-/* ════════════════════════════
-   AUTH SYSTEM
-════════════════════════════ */
-const AUTH_CSS = `:root{
-  --bg:#f5f3ee;--sur:#fff;--s2:#faf9f6;--s3:#f0ece4;
-  --bd:#e8e4dc;--bd2:#d4cfc4;--tx:#1a1714;--sub:#7a7267;
-  --r:#d4420a;--g:#1a6b3c;--b:#1a4a8c;--y:#f5a623;
-  --sh:0 2px 12px rgba(0,0,0,0.08);
-}
-
-.auth-wrap{position:fixed;inset:0;background:#1a1714;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;animation:fadeIn 0.3s ease}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.auth-logo{font-size:52px;font-weight:900;color:#fff;letter-spacing:-2px;margin-bottom:6px;text-align:center}
-.auth-logo b{color:#d4420a}
-.auth-sub{font-size:12px;color:rgba(255,255,255,0.4);letter-spacing:2px;margin-bottom:36px;text-align:center}
-.auth-card{background:#fff;border-radius:16px;padding:22px 20px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.4)}
-.auth-title{font-size:17px;font-weight:900;color:var(--tx);margin-bottom:4px}
-.auth-desc{font-size:11px;color:var(--sub);margin-bottom:18px;line-height:1.5}
-/* Role select */
-.role-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
-.role-card{padding:14px 10px;border-radius:10px;border:2px solid var(--bd);background:var(--s2);cursor:pointer;text-align:center;transition:all 0.2s}
-.role-card.sel-w{border-color:var(--r);background:#fff3ee}
-.role-card.sel-c{border-color:var(--b);background:#e8f0ff}
-.role-card-icon{font-size:26px;margin-bottom:6px}
-.role-card-name{font-size:13px;font-weight:700;color:var(--tx)}
-.role-card-desc{font-size:10px;color:var(--sub);margin-top:2px;line-height:1.3}
-/* Form */
-.auth-form{display:flex;flex-direction:column;gap:10px}
-.auth-input{padding:11px 13px;background:var(--s2);border:1px solid var(--bd);border-radius:8px;font-size:13px;color:var(--tx);outline:none;width:100%;transition:border-color 0.2s;font-family:'Noto Sans SC',sans-serif}
-.auth-input:focus{border-color:var(--b)}
-.auth-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.auth-btn{width:100%;padding:13px;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.5px;margin-top:4px;font-family:'Noto Sans SC',sans-serif}
-.auth-btn-w{background:var(--r);color:#fff}
-.auth-btn-c{background:var(--b);color:#fff}
-.auth-btn-gray{background:var(--s3);color:var(--sub)}
-.auth-divider{display:flex;align-items:center;gap:8px;margin:12px 0}
-.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--bd)}
-.auth-divider span{font-size:11px;color:var(--sub)}
-.auth-link{text-align:center;font-size:12px;color:var(--sub);margin-top:8px}
-.auth-link b{color:var(--b);cursor:pointer;font-weight:700}
-.auth-link b.r{color:var(--r)}
-.auth-err{background:#fff0ec;border:1px solid rgba(212,66,10,0.2);border-radius:7px;padding:8px 11px;font-size:11px;color:var(--r);margin-bottom:4px}
-.auth-ok{background:#e8f5ee;border:1px solid rgba(26,107,60,0.2);border-radius:7px;padding:8px 11px;font-size:11px;color:var(--g);margin-bottom:4px}
-.auth-back{display:flex;align-items:center;gap:5px;background:none;border:none;color:rgba(255,255,255,0.5);font-size:12px;cursor:pointer;margin-bottom:16px;font-family:'Noto Sans SC',sans-serif}
-.auth-step-dots{display:flex;gap:5px;justify-content:center;margin-bottom:16px}
-.auth-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.2)}
-.auth-dot.on{background:#d4420a;width:18px;border-radius:3px}
-`;
-
-// _MEM defined at top
-function getUsers() { return _MEM.users; }
-function saveUsers(u) {
-  _MEM.users = u;
-  try { localStorage.setItem('__gj_users__', JSON.stringify(u)); } catch(e){}
-}
-function getCurrentUser() { return _MEM.current; }
-function setCurrentUser(u) {
-  _MEM.current = u;
-  try { localStorage.setItem('__gj_current__', JSON.stringify(u)); } catch(e){}
-}
-function logout() {
-  _MEM.current = null;
-  try { localStorage.removeItem('__gj_current__'); } catch(e){}
-}
-
-/* ── WELCOME SCREEN ── */
-function WelcomeScreen({onLogin, onRegister}) {
-  return e('div',{className:'auth-wrap'},
-    e('div',{className:'auth-logo'},'工',e('b',null,'匠'),'通'),
-    e('div',{className:'auth-sub'},'建筑工人智慧用工平台'),
-    e('div',{className:'auth-card'},
-      e('div',{className:'auth-title'},'欢迎使用工匠通'),
-      e('div',{className:'auth-desc'},'连接建筑工人与优质雇主，让用工更简单、更透明'),
-      e('div',{className:'role-cards'},
-        e('div',{className:'role-card',onClick:()=>onRegister('worker')},
-          e('div',{className:'role-card-icon'},'👷'),
-          e('div',{className:'role-card-name'},'我是工人'),
-          e('div',{className:'role-card-desc'},'找工作·打卡·日志')
-        ),
-        e('div',{className:'role-card',onClick:()=>onRegister('company')},
-          e('div',{className:'role-card-icon'},'🏢'),
-          e('div',{className:'role-card-name'},'我是公司'),
-          e('div',{className:'role-card-desc'},'发布职位·管理工人')
-        )
+    e('div',{className:'form-sec'},
+      e('div',{className:'hint-b'},'💡 标 * 字段为匹配关键项，资料越完整推荐越精准！'),
+      e('div',{className:'sec-divider'},'基本信息'),
+      e('div',{className:'fr2'},
+        e('div',{className:'fg'},e('label',{className:'fl fl-req'},'姓名'),e('input',{className:'fi',value:wp.name||'',onChange:ev=>setWp(p=>({...p,name:ev.target.value})),placeholder:'真实姓名'})),
+        e('div',{className:'fg'},e('label',{className:'fl'},'性别'),e('div',{className:'chips'},...['男','女'].map(v=>e('button',{key:v,className:'chip '+(wp.gender===v?'on-r':''),onClick:()=>setWp(p=>({...p,gender:v}))},v))))
       ),
-      e('div',{className:'auth-divider'},e('span',null,'已有账号')),
-      e('button',{className:'auth-btn auth-btn-gray',onClick:onLogin},'登录账号')
-    )
-  );
-}
-
-/* ── REGISTER SCREEN ── */
-function RegisterScreen({initRole, onBack, onDone}) {
-  const [step, setStep] = useState(1); // 1=role, 2=info, 3=done
-  const [role, setRole] = useState(initRole||'worker');
-  const [form, setForm] = useState({name:'',phone:'',email:'',password:'',confirm:'',
-    companyName:'',abn:''});
-  const [err, setErr] = useState('');
-
-  const setF = (k,v) => setForm(p=>({...p,[k]:v}));
-
-  const goStep2 = () => { setErr(''); setStep(2); };
-
-  const submit = () => {
-    setErr('');
-    if(role==='worker'){
-      if(!form.name.trim()) return setErr('请填写姓名');
-      if(!form.phone.trim()) return setErr('请填写手机号');
-      if(!form.password || form.password.length < 6) return setErr('密码至少6位');
-      if(form.password !== form.confirm) return setErr('两次密码不一致');
-    } else {
-      if(!form.companyName.trim()) return setErr('请填写公司名称');
-      if(!form.phone.trim()) return setErr('请填写联系电话');
-      if(!form.password || form.password.length < 6) return setErr('密码至少6位');
-      if(form.password !== form.confirm) return setErr('两次密码不一致');
-    }
-    const users = getUsers();
-    if(users.find(u=>u.phone===form.phone)) return setErr('该手机号已注册');
-    const newUser = {
-      id: Date.now(),
-      role,
-      phone: form.phone,
-      password: form.password,
-      name: role==='worker' ? form.name : form.companyName,
-      email: form.email,
-      abn: form.abn,
-      createdAt: new Date().toISOString(),
-      profile: role==='worker' ? {...DEFAULT_WORKER, name:form.name, phone:form.phone, email:form.email}
-                                : {...DEFAULT_COMPANY, name:form.companyName, phone:form.phone},
-    };
-    users.push(newUser);
-    saveUsers(users);
-    setCurrentUser(newUser);
-    setStep(3);
-    setTimeout(()=>onDone(newUser), 1500);
-  };
-
-  const dots = [1,2,3].map((n,i)=>e('div',{key:n,className:`auth-dot ${step===n?'on':''}`}));
-
-  return e('div',{className:'auth-wrap'},
-    e('button',{className:'auth-back',onClick:step===1?onBack:()=>setStep(step-1)},
-      '← '+(step===1?'返回':'上一步')),
-    e('div',{className:'auth-step-dots'},...dots),
-
-    step===1 && e('div',{className:'auth-card'},
-      e('div',{className:'auth-title'},'选择注册身份'),
-      e('div',{className:'auth-desc'},'请选择您的身份类型，注册后可在相应端使用全部功能'),
-      e('div',{className:'role-cards'},
-        e('div',{className:`role-card ${role==='worker'?'sel-w':''}`,onClick:()=>setRole('worker')},
-          e('div',{className:'role-card-icon'},'👷'),
-          e('div',{className:'role-card-name'},'工人注册'),
-          e('div',{className:'role-card-desc'},'找工作·打卡·日志·信誉')
-        ),
-        e('div',{className:`role-card ${role==='company'?'sel-c':''}`,onClick:()=>setRole('company')},
-          e('div',{className:'role-card-icon'},'🏢'),
-          e('div',{className:'role-card-name'},'公司注册'),
-          e('div',{className:'role-card-desc'},'招工·管理·任务·审查')
-        )
+      e('div',{className:'fr2'},
+        e('div',{className:'fg'},e('label',{className:'fl'},'年龄'),e('input',{className:'fi',type:'number',value:wp.age||'',onChange:ev=>setWp(p=>({...p,age:ev.target.value})),placeholder:'如：35'})),
+        e('div',{className:'fg'},e('label',{className:'fl fl-req'},'电话'),e('input',{className:'fi',value:wp.phone||'',onChange:ev=>setWp(p=>({...p,phone:ev.target.value})),placeholder:'0412-xxx-xxx'}))
       ),
-      e('button',{className:`auth-btn ${role==='worker'?'auth-btn-w':'auth-btn-c'}`,onClick:goStep2},'下一步 →')
+      e('div',{className:'fg'},e('label',{className:'fl'},'邮箱'),e('input',{className:'fi',value:wp.email||'',onChange:ev=>setWp(p=>({...p,email:ev.target.value})),placeholder:'your@email.com'})),
+      e('div',{className:'fg'},e('label',{className:'fl'},'家庭地址'),e('input',{className:'fi',value:wp.address||'',onChange:ev=>setWp(p=>({...p,address:ev.target.value})),placeholder:'详细地址'})),
+      e('div',{className:'fg'},e('label',{className:'fl'},'紧急联系人'),e('input',{className:'fi',value:wp.emergency||'',onChange:ev=>setWp(p=>({...p,emergency:ev.target.value})),placeholder:'姓名 / 电话'})),
+      e('div',{className:'sec-divider'},'城市偏好 ⭐'),
+      e('div',{className:'fg'},e('label',{className:'fl fl-req'},'当前所在城市'),
+        e('div',{className:'chips'},...CITIES_LIST.slice(0,6).map(c=>e('button',{key:c,className:'chip '+(wp.currentCity===c?'on':''),onClick:()=>setWp(p=>({...p,currentCity:c}))},c)))
+      ),
+      e('div',{className:'fg'},e('label',{className:'fl fl-req'},'希望工作城市（多选）'),Chips({options:CITIES_LIST.slice(0,6),field:'workCities',obj:wp,onToggle:toggleWp})),
+      e('div',{className:'sec-divider'},'工作信息 ⭐'),
+      e('div',{className:'fg'},e('label',{className:'fl fl-req'},'应聘工种（多选）'),Chips({options:JOB_TYPES,field:'types',obj:wp,onToggle:toggleWp})),
+      e('div',{className:'fr2'},
+        e('div',{className:'fg'},e('label',{className:'fl fl-req'},'工龄（年）'),e('input',{className:'fi',type:'number',value:wp.experience||'',onChange:ev=>setWp(p=>({...p,experience:parseInt(ev.target.value)||0})),placeholder:'如：8'})),
+        e('div',{className:'fg'},e('label',{className:'fl fl-req'},'交通工具'),e('div',{className:'chips'},...['有','无'].map(v=>e('button',{key:v,className:'chip '+((wp.hasVehicle?'有':'无')===v?'on':''),onClick:()=>setWp(p=>({...p,hasVehicle:v==='有'}))},v))))
+      ),
+      e('div',{className:'fr2'},
+        e('div',{className:'fg'},e('label',{className:'fl fl-req'},'预计时薪（A$）'),e('input',{className:'fi',type:'number',value:wp.payExpect||'',onChange:ev=>setWp(p=>({...p,payExpect:parseFloat(ev.target.value)||0})),placeholder:'如：40'})),
+        e('div',{className:'fg'},e('label',{className:'fl'},'薪资方式'),e('select',{className:'fi',value:wp.payUnit||'时',onChange:ev=>setWp(p=>({...p,payUnit:ev.target.value}))},
+          ...['时','天','周','年'].map(o=>e('option',{key:o},o))
+        ))
+      ),
+      e('div',{className:'fg'},e('label',{className:'fl'},'持有工具'),e('input',{className:'fi',value:wp.tools||'',onChange:ev=>setWp(p=>({...p,tools:ev.target.value})),placeholder:'如：电钻、砂轮机'})),
+      e('div',{className:'sec-divider'},'证件上传'),
+      e('div',{className:'fg'},e('label',{className:'fl'},'驾照 / 护照'),UploadBox({fieldKey:'license',label:'证件'})),
+      e('div',{className:'fg'},
+        e('label',{className:'fl'},'工作证件'),
+        e('input',{className:'fi',style:{marginBottom:8},value:wp.certDesc||'',onChange:ev=>setWp(p=>({...p,certDesc:ev.target.value})),placeholder:'如：白卡、电工证'}),
+        UploadBox({fieldKey:'cert',label:'证件照片'})
+      ),
+      e('div',{className:'fg'},e('label',{className:'fl'},'其他补充'),e('textarea',{className:'fi',style:{minHeight:64,resize:'none',outline:'none'},value:wp.notes||'',onChange:ev=>setWp(p=>({...p,notes:ev.target.value})),placeholder:'其他技能特长…'}))
     ),
+    e('button',{className:'save-btn '+(saved?'saved':''),onClick:save},saved?'✅ 已保存！':'保存资料'),
+    e('button',{onClick:()=>{if(typeof onLogout==='function')onLogout();},
+      style:{margin:'0 16px 24px',width:'calc(100% - 32px)',padding:'12px',borderRadius:10,border:'1px solid var(--bd)',background:'var(--s3)',color:'var(--sub)',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"}},'退出登录')
+  );
+}
 
-    step===2 && e('div',{className:'auth-card'},
-      e('div',{className:'auth-title'},role==='worker'?'👷 工人注册':'🏢 公司注册'),
-      e('div',{className:'auth-desc'},role==='worker'?'填写个人信息完成注册':'填写公司信息完成注册'),
-      err && e('div',{className:'auth-err'},err),
-      e('div',{className:'auth-form'},
-        role==='worker'
-          ? e('input',{className:'auth-input',placeholder:'真实姓名 *',value:form.name,onChange:ev=>setF('name',ev.target.value)})
-          : e('input',{className:'auth-input',placeholder:'公司名称 *',value:form.companyName,onChange:ev=>setF('companyName',ev.target.value)}),
-        e('input',{className:'auth-input',placeholder:'手机号 *',type:'tel',value:form.phone,onChange:ev=>setF('phone',ev.target.value)}),
-        e('input',{className:'auth-input',placeholder:'邮箱（选填）',type:'email',value:form.email,onChange:ev=>setF('email',ev.target.value)}),
-        role==='company' && e('input',{className:'auth-input',placeholder:'ABN / 营业执照号（选填）',value:form.abn,onChange:ev=>setF('abn',ev.target.value)}),
-        e('input',{className:'auth-input',placeholder:'设置密码（至少6位）*',type:'password',value:form.password,onChange:ev=>setF('password',ev.target.value)}),
-        e('input',{className:'auth-input',placeholder:'确认密码 *',type:'password',value:form.confirm,onChange:ev=>setF('confirm',ev.target.value)}),
-        e('button',{className:`auth-btn ${role==='worker'?'auth-btn-w':'auth-btn-c'}`,onClick:submit},'完成注册')
+function CompanyProfilePage({companyProfile, setCompanyProfile, onLogout}) {
+  const [saved, setSaved] = useState(false);
+  const [cp, setCp] = useState(companyProfile);
+  const toggleCp = (field, val) => setCp(p=>({...p,[field]:(p[field]||[]).includes(val)?(p[field]||[]).filter(x=>x!==val):[...(p[field]||[]),val]}));
+  const save = () => { setCompanyProfile(cp); setSaved(true); setTimeout(()=>setSaved(false),2500); };
+
+  const Chips = ({options,field,obj,onToggle}) =>
+    e('div',{className:'chips'},
+      ...options.map(v=>e('button',{key:v,className:'chip '+((obj[field]||[]).includes(v)?'on':''),onClick:()=>onToggle(field,v)},v))
+    );
+
+  return e('div',{className:'page'},
+    e('div',{className:'ph-hero'},
+      e('div',{className:'ph-deco'}),
+      e('div',{className:'ph-av'},(cp.name||'公')[0]),
+      e('div',{className:'ph-name'},cp.name||'（请填写公司名称）'),
+      e('div',{className:'ph-meta'},(cp.types||[]).join('·')||'未填工程'+' · '+(cp.cities||[]).join('、')||'未填城市'),
+      e('div',{className:'ph-stats'},
+        ...[[cp.headcount||'—','规模'],['4.8','信誉分'],['3','在建项目'],['98%','准时率']]
+          .map(([n,l])=>e('div',{key:l,className:'ph-st'},e('div',{className:'ph-sn'},n),e('div',{className:'ph-sl'},l)))
       )
     ),
-
-    step===3 && e('div',{className:'auth-card',style:{textAlign:'center'}},
-      e('div',{style:{fontSize:48,marginBottom:12}},'🎉'),
-      e('div',{className:'auth-title',style:{textAlign:'center',marginBottom:6}},'注册成功！'),
-      e('div',{className:'auth-desc',style:{textAlign:'center'}},`欢迎加入工匠通，正在进入${role==='worker'?'工人':'公司'}端…`)
-    )
-  );
-}
-
-/* ── LOGIN SCREEN ── */
-function LoginScreen({onBack, onDone}) {
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
-  const [err, setErr] = useState('');
-
-  const submit = () => {
-    setErr('');
-    if(!phone.trim()) return setErr('请填写手机号');
-    if(!password) return setErr('请填写密码');
-    const users = getUsers();
-    const user = users.find(u=>u.phone===phone && u.password===password);
-    if(!user) return setErr('手机号或密码错误');
-    setCurrentUser(user);
-    onDone(user);
-  };
-
-  // Demo login shortcut
-  const demoLogin = (role) => {
-    const users = getUsers();
-    let demo = users.find(u=>u.phone===(role==='worker'?'demo_worker':'demo_company'));
-    if(!demo){
-      demo = {
-        id: role==='worker'?-1:-2,
-        role,
-        phone: role==='worker'?'demo_worker':'demo_company',
-        password:'demo',
-        name: role==='worker'?'张建国':'Pacific Build Group',
-        profile: role==='worker'?{...DEFAULT_WORKER}:{...DEFAULT_COMPANY},
-      };
-      users.push(demo);
-      saveUsers(users);
-    }
-    setCurrentUser(demo);
-    onDone(demo);
-  };
-
-  return e('div',{className:'auth-wrap'},
-    e('button',{className:'auth-back',onClick:onBack},'← 返回'),
-    e('div',{className:'auth-logo',style:{fontSize:36,marginBottom:4}},'工',e('b',null,'匠'),'通'),
-    e('div',{className:'auth-sub',style:{marginBottom:24}},'登录账号'),
-    e('div',{className:'auth-card'},
-      e('div',{className:'auth-title'},'账号登录'),
-      e('div',{className:'auth-desc'},'使用注册时的手机号和密码登录'),
-      err && e('div',{className:'auth-err'},err),
-      e('div',{className:'auth-form'},
-        e('input',{className:'auth-input',placeholder:'手机号',type:'tel',value:phone,onChange:ev=>setPhone(ev.target.value)}),
-        e('input',{className:'auth-input',placeholder:'密码',type:'password',value:password,onChange:ev=>setPassword(ev.target.value)}),
-        e('button',{className:'auth-btn auth-btn-c',onClick:submit},'登录')
+    e('div',{className:'form-sec'},
+      e('div',{className:'hint-b'},'💡 公司资料用于大数据匹配，帮助推荐最合适工人。'),
+      e('div',{className:'sec-divider'},'公司基本信息'),
+      e('div',{className:'fg'},e('label',{className:'fl fl-req'},'公司名称'),e('input',{className:'fi',value:cp.name||'',onChange:ev=>setCp(p=>({...p,name:ev.target.value})),placeholder:'公司全称'})),
+      e('div',{className:'fg'},e('label',{className:'fl fl-req'},'所在城市（多选）'),Chips({options:CITIES_LIST.slice(0,5),field:'cities',obj:cp,onToggle:toggleCp})),
+      e('div',{className:'fr2'},
+        e('div',{className:'fg'},e('label',{className:'fl fl-req'},'公司规模'),e('select',{className:'fi',value:cp.headcount||'',onChange:ev=>setCp(p=>({...p,headcount:ev.target.value}))},
+          e('option',{value:''},'请选择'),...['1-10人','10-20人','20-50人','50-200人','200人以上'].map(o=>e('option',{key:o},o))
+        )),
+        e('div',{className:'fg'},e('label',{className:'fl fl-req'},'薪资支付周期'),e('select',{className:'fi',value:cp.payDay||'',onChange:ev=>setCp(p=>({...p,payDay:ev.target.value}))},
+          e('option',{value:''},'请选择'),...['周结','两周结','月结','项目完结'].map(o=>e('option',{key:o},o))
+        ))
       ),
-      e('div',{className:'auth-divider'},e('span',null,'快速体验')),
-      e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}},
-        e('button',{className:'auth-btn',style:{background:'#fff3ee',color:'var(--r)',fontSize:12},onClick:()=>demoLogin('worker')},'👷 工人演示'),
-        e('button',{className:'auth-btn',style:{background:'#e8f0ff',color:'var(--b)',fontSize:12},onClick:()=>demoLogin('company')},'🏢 公司演示')
-      )
-    )
+      e('div',{className:'sec-divider'},'工程内容 ⭐'),
+      e('div',{className:'fg'},e('label',{className:'fl fl-req'},'所需工种'),Chips({options:JOB_TYPES,field:'types',obj:cp,onToggle:toggleCp})),
+      e('div',{className:'sec-divider'},'招募要求'),
+      e('div',{className:'fr2'},
+        e('div',{className:'fg'},e('label',{className:'fl'},'最高时薪（A$）'),e('input',{className:'fi',type:'number',value:cp.maxPay||'',onChange:ev=>setCp(p=>({...p,maxPay:parseFloat(ev.target.value)||0})),placeholder:'如：55'})),
+        e('div',{className:'fg'},e('label',{className:'fl'},'最低工龄要求'),e('select',{className:'fi',value:cp.minExp||0,onChange:ev=>setCp(p=>({...p,minExp:parseInt(ev.target.value)||0}))},
+          e('option',{value:0},'无要求'),...[1,2,3,5,8].map(n=>e('option',{key:n,value:n},n+'年以上'))
+        ))
+      ),
+      e('div',{className:'fg'},e('label',{className:'fl'},'公司简介'),e('textarea',{className:'fi',style:{minHeight:64,resize:'none',outline:'none'},value:cp.desc||'',onChange:ev=>setCp(p=>({...p,desc:ev.target.value})),placeholder:'公司背景、项目类型、福利待遇…'}))
+    ),
+    e('button',{className:'save-btn '+(saved?'saved':''),onClick:save},saved?'✅ 已保存！':'保存公司资料'),
+    e('button',{onClick:()=>{if(typeof onLogout==='function')onLogout();},
+      style:{margin:'0 16px 24px',width:'calc(100% - 32px)',padding:'12px',borderRadius:10,border:'1px solid var(--bd)',background:'var(--s3)',color:'var(--sub)',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"}},'退出登录')
   );
 }
+
+function ProfilePage(props) {
+  const {profile, setProfile, companyProfile, setCompanyProfile, role, onLogout} = props;
+  if(role==='company') {
+    return e(CompanyProfilePage, {companyProfile, setCompanyProfile, onLogout});
+  }
+  return e(WorkerProfilePage, {profile, setProfile, onLogout});
+}
+
 
 /* ════════════════════════════
    APP ROOT
