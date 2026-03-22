@@ -22,6 +22,10 @@ html,body{height:100%;background:#1a1714;overscroll-behavior:none;-webkit-tap-hi
 .sp-dot:nth-child(2){animation-delay:.2s}.sp-dot:nth-child(3){animation-delay:.4s}
 @keyframes bk{0%,80%,100%{background:rgba(255,255,255,0.15)}40%{background:#d4420a}}
 </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 <div id="splash">
@@ -30,9 +34,7 @@ html,body{height:100%;background:#1a1714;overscroll-behavior:none;-webkit-tap-hi
   <div class="sp-dots"><div class="sp-dot"></div><div class="sp-dot"></div><div class="sp-dot"></div></div>
 </div>
 <div id="root"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script>// ── GLOBAL MEMORY STORE (must be first) ──
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/re// ── GLOBAL MEMORY STORE (must be first) ──
 const _MEM = { users: [], current: null, punches: {} };
 (function(){
   try {
@@ -458,6 +460,15 @@ button{cursor:pointer}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .page>*{animation:fadeUp 0.2s ease both}
 
+.real-map{height:240px;width:100%;border-radius:0;position:relative;z-index:1}
+.leaflet-container{font-family:'Noto Sans SC',sans-serif!important}
+.addr-bar{padding:8px 14px;background:var(--sur);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:7px}
+.addr-icon{font-size:14px;flex-shrink:0}
+.addr-text{font-size:11px;color:var(--tx);line-height:1.4;flex:1}
+.addr-coords{font-size:9px;color:var(--sub);font-family:'DM Mono',monospace;margin-top:2px}
+.map-overlay-btn{position:absolute;top:8px;right:8px;z-index:1000;background:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;color:var(--b);box-shadow:0 2px 8px rgba(0,0,0,0.15);cursor:pointer;font-family:'Noto Sans SC',sans-serif}
+
+
 .hcard{margin:10px 16px 0;background:var(--sur);border-radius:11px;border:1px solid var(--bd);overflow:hidden}
 .hcard-hd{background:linear-gradient(135deg,#1a6b3c,#165a30);color:#fff;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700}
 .hcard-wk{font-size:10px;opacity:0.7;font-family:'DM Mono',monospace}
@@ -696,6 +707,46 @@ function MatchPage({profile, onGoProfile}) {
    2. CHECKIN PAGE
 ════════════════════════════ */
 
+
+/* ── REAL MAP & GEOCODING ── */
+var _mapInstance = null;
+var _mapMarker = null;
+
+function _initMap(lat, lng) {
+  if (!document.getElementById('gj-map')) return;
+  if (_mapInstance) {
+    _mapInstance.setView([lat, lng], 17);
+    if (_mapMarker) _mapMarker.setLatLng([lat, lng]);
+    else _mapMarker = L.marker([lat, lng]).addTo(_mapInstance);
+    return;
+  }
+  _mapInstance = L.map('gj-map', {zoomControl: true, attributionControl: false}).setView([lat, lng], 17);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap'
+  }).addTo(_mapInstance);
+  var icon = L.divIcon({
+    html: '<div style="width:14px;height:14px;border-radius:50%;background:#d4420a;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.4)"></div>',
+    iconSize: [14,14], iconAnchor: [7,7], className: ''
+  });
+  _mapMarker = L.marker([lat, lng], {icon: icon}).addTo(_mapInstance);
+  L.circle([lat, lng], {radius: 30, color: '#d4420a', fillColor: '#d4420a', fillOpacity: 0.1, weight: 1}).addTo(_mapInstance);
+}
+
+function _reverseGeocode(lat, lng, callback) {
+  var url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat='+lat+'&lon='+lng+'&accept-language=zh&zoom=18';
+  fetch(url, {headers: {'User-Agent': 'GongJiangTong/1.0'}})
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var addr = data.display_name || '';
+      // Shorten: take first 2-3 parts
+      var parts = addr.split(',').map(function(s){return s.trim();}).filter(Boolean);
+      var short = parts.slice(0,3).join(', ');
+      callback(short || addr, data.address || {});
+    })
+    .catch(function() { callback('位置获取中…', {}); });
+}
+
 /* ── PUNCH & GPS HELPERS ── */
 // punches already in _MEM
 function _savep() { try { localStorage.setItem('__gj_p__', JSON.stringify(_MEM.punches)); } catch(e) {} }
@@ -757,11 +808,64 @@ function CheckinPage({role, authUser}) {
   const [gpsStatus, setGpsStatus] = useState('init');
   const [gpsCoords, setGpsCoords] = useState(null);
   const [gpsMsg, setGpsMsg] = useState('点击按钮获取位置');
+  const [gpsAddr, setGpsAddr] = useState('');
   const [punchIn, setPunchIn] = useState(null);
   const [punchOut, setPunchOut] = useState(null);
   const [timer, setTimer] = useState(0);
   const [selW, setSelW] = useState(null);
   var WORKER_DOTS = [{name:'张',x:'48%',y:'44%',color:'#d4420a',full:'张建国'},{name:'刘',x:'55%',y:'52%',color:'#1a6b3c',full:'刘大明'},{name:'王',x:'42%',y:'60%',color:'#1a4a8c',full:'王建华'}];
+  var mapContainerRef = useRef(null);
+  var mapRef = useRef(null);
+  var markerRef = useRef(null);
+  var addrState = useState('点击"获取GPS位置"显示当前位置');
+  var address = addrState[0]; var setAddress = addrState[1];
+
+  // Init Leaflet map
+  useEffect(function(){
+    if(typeof L === 'undefined') return;
+    var container = document.getElementById('leaflet-map');
+    if(!container || mapRef.current) return;
+    var initLat = -33.8688, initLng = 151.2093; // Sydney default
+    var map = L.map('leaflet-map', {zoomControl:true, attributionControl:true}).setView([initLat, initLng], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution:'© OpenStreetMap',
+      maxZoom:19
+    }).addTo(map);
+    mapRef.current = map;
+    // Fix Leaflet tile loading
+    setTimeout(function(){ map.invalidateSize(); }, 200);
+    return function(){ if(mapRef.current){ mapRef.current.remove(); mapRef.current=null; } };
+  }, []);
+
+  // Update map when GPS coords change
+  useEffect(function(){
+    if(!gpsCoords || !mapRef.current || typeof L === 'undefined') return;
+    var lat = parseFloat(gpsCoords.lat), lng = parseFloat(gpsCoords.lng);
+    mapRef.current.setView([lat, lng], 17);
+    // Update or create marker
+    if(markerRef.current){ markerRef.current.setLatLng([lat, lng]); }
+    else {
+      var icon = L.divIcon({
+        html: '<div style="width:16px;height:16px;border-radius:50%;background:#d4420a;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.4)"></div>',
+        iconSize:[16,16], iconAnchor:[8,8], className:''
+      });
+      markerRef.current = L.marker([lat, lng], {icon:icon}).addTo(mapRef.current);
+      markerRef.current.bindPopup('📍 我的位置').openPopup();
+    }
+    // Reverse geocode with Nominatim
+    fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+lat+'&lon='+lng+'&addressdetails=1&accept-language=zh')
+      .then(function(r){return r.json();})
+      .then(function(data){
+        if(data && data.display_name){
+          var addr = data.address;
+          var short = (addr.road||addr.pedestrian||addr.suburb||'') +
+                      (addr.suburb?' '+addr.suburb:'') +
+                      (addr.city||addr.town||addr.county?', '+(addr.city||addr.town||addr.county):'');
+          setAddress(short || data.display_name.split(',').slice(0,3).join(','));
+          if(markerRef.current) markerRef.current.bindPopup('📍 '+short).openPopup();
+        }
+      }).catch(function(){});
+  }, [gpsCoords]);
 
   useEffect(function(){
     var recs = (_MEM.punches&&_MEM.punches[wname])||[];
@@ -781,7 +885,19 @@ function CheckinPage({role, authUser}) {
     if(!navigator.geolocation){setGpsStatus('error');setGpsMsg('不支持GPS');return;}
     setGpsStatus('searching');setGpsMsg('定位中…');
     navigator.geolocation.getCurrentPosition(
-      function(p){setGpsStatus('ok');setGpsCoords({lat:p.coords.latitude.toFixed(5),lng:p.coords.longitude.toFixed(5)});setGpsMsg('±'+Math.round(p.coords.accuracy)+'m');},
+      function(p){
+        var lat=p.coords.latitude, lng=p.coords.longitude;
+        setGpsStatus('ok');
+        setGpsCoords({lat:lat.toFixed(5),lng:lng.toFixed(5)});
+        setGpsMsg('±'+Math.round(p.coords.accuracy)+'m');
+        // Init real map
+        setTimeout(function(){_initMap(lat,lng);},300);
+        // Reverse geocode for address
+        _reverseGeocode(lat, lng, function(addr){
+          setGpsMsg('±'+Math.round(p.coords.accuracy)+'m · '+addr.slice(0,30));
+          setGpsAddr(addr);
+        });
+      },
       function(e){setGpsStatus('error');setGpsMsg({1:'请允许位置权限',2:'无法获取位置',3:'定位超时'}[e.code]||'失败');},
       {enableHighAccuracy:true,timeout:15000,maximumAge:0}
     );
@@ -824,33 +940,39 @@ function CheckinPage({role, authUser}) {
 
   return e('div',{className:'page'},
     e('div',{className:'card',style:{margin:'14px 16px 0'}},
-      e('div',{className:'map-box'},
-        e('svg',{viewBox:'0 0 320 200',style:{position:'absolute',inset:0,width:'100%',height:'100%',opacity:0.18}},
-          ...[20,60,100,140,180].map(function(y){return e('line',{key:y,x1:0,y1:y,x2:320,y2:y,stroke:'#2a6a2a',strokeWidth:0.7});}),
-          ...[0,64,128,192,256,320].map(function(x){return e('line',{key:x,x1:x,y1:0,x2:x,y2:200,stroke:'#2a6a2a',strokeWidth:0.7});})
-        ),
-        e('div',{className:'gpsbadge'},
-          e('div',{className:'gpsled',style:{background:ledC}}),
-          e('span',null, gpsStatus==='ok'?'GPS已定位 '+gpsMsg: gpsStatus==='searching'?'定位中…':gpsMsg)
-        ),
-        isCompany
-          ? e('div',{style:{position:'absolute',inset:0}},
+      /* Real map */
+      isCompany
+        ? e('div',{className:'map-box',style:{position:'relative'}},
+            e('svg',{viewBox:'0 0 320 200',style:{position:'absolute',inset:0,width:'100%',height:'100%',opacity:0.18}},
+              ...[20,60,100,140,180].map(function(y){return e('line',{key:y,x1:0,y1:y,x2:320,y2:y,stroke:'#2a6a2a',strokeWidth:0.7});}),
+              ...[0,64,128,192,256,320].map(function(x){return e('line',{key:x,x1:x,y1:0,x2:x,y2:200,stroke:'#2a6a2a',strokeWidth:0.7});})
+            ),
+            e('div',{style:{position:'absolute',inset:0}},
               WORKER_DOTS.map(function(w,i){
                 return e('div',{key:i,onClick:function(){setSelW(w);},style:{
                   position:'absolute',top:w.y,left:w.x,width:28,height:28,borderRadius:'50%',
                   background:w.color,border:'2px solid #fff',color:'#fff',
-                  display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700}},w.name);
+                  display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,zIndex:2}},w.name);
               })
-            )
-          : e('div',{style:{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)'}},
-              ...[{s:50,d:0},{s:70,d:0.5},{s:90,d:1}].map(function(p,i){
-                return e('div',{key:i,className:'pulse-ring',style:{width:p.s,height:p.s,position:'absolute',top:'50%',left:'50%',animationDelay:p.d+'s'}});
-              }),
-              e('div',{className:'pulse-dot'})
             ),
-        e('div',{className:'map-badge'},
-          isCompany?'📍 项目工地 — '+WORKER_DOTS.length+'人在场':
-            gpsCoords?('📍 '+gpsCoords.lat+', '+gpsCoords.lng):'📍 未定位')
+            e('div',{className:'map-badge'},'📍 项目工地 — '+WORKER_DOTS.length+'人在场')
+          )
+        : e('div',{style:{position:'relative'}},
+            e('div',{id:'gj-map',className:'real-map'}),
+            e('button',{className:'map-overlay-btn',onClick:_getGPS},
+              gpsStatus==='searching'?'🔍 定位中':'📡 重新定位')
+          ),
+      /* Address bar (worker only) */
+      !isCompany && e('div',{className:'addr-bar'},
+        e('span',{className:'addr-icon'}, gpsStatus==='ok'?'📍':'🔍'),
+        e('div',{className:'addr-text'},
+          gpsStatus==='ok'
+            ? e('div',null,
+                e('div',null, gpsAddr || '正在获取地址…'),
+                e('div',{className:'addr-coords'}, gpsCoords?gpsCoords.lat+', '+gpsCoords.lng:'')
+              )
+            : gpsStatus==='searching'?'正在定位…':gpsMsg
+        )
       ),
       e('div',{style:{padding:'12px 16px'}},
         (isCompany?[
@@ -860,7 +982,7 @@ function CheckinPage({role, authUser}) {
           ['今日日期',now.toLocaleDateString('zh-CN'),'']
         ]:[
           ['GPS状态',gpsStatus==='ok'?'✅ 已定位':gpsStatus==='searching'?'🔍 定位中':'❌ '+gpsMsg, gpsStatus==='ok'?'ci-g':'ci-r'],
-          ['坐标',gpsCoords?(gpsCoords.lat+', '+gpsCoords.lng):'—',''],
+          ['地址',address,''],
           ['今日上班',punchIn||'未打卡',punchIn?'ci-g':''],
           ['今日下班',punchOut||(punchIn?'进行中':'—'),punchOut?'ci-g':punchIn?'ci-r':''],
           ['今日工时',tStr||(todayRec?todayRec.hours+'h':'0h'),'']
@@ -1900,6 +2022,25 @@ function App() {
     ),
     pages[validTab],
     e('div', {className:'bottom-nav'},
+      ...TABS.map(t =>
+        e('button', {key:t.key, className:`nb ${validTab===t.key?'on':''}`, onClick:()=>setTab(t.key)},
+          e('span', {className:'nb-icon'}, t.icon),
+          t.label
+        )
+      )
+    )
+  );
+}
+
+// Global error handler to prevent black screen
+window.addEventListener('error', function(ev){
+  console.error('App error:', ev.error);
+});
+window.addEventListener('unhandledrejection', function(ev){
+  console.error('Unhandled promise:', ev.reason);
+});
+ReactDOM.createRoot(document.getElementById('root')).render(e(App));
+v'},
       ...TABS.map(t =>
         e('button', {key:t.key, className:`nb ${validTab===t.key?'on':''}`, onClick:()=>setTab(t.key)},
           e('span', {className:'nb-icon'}, t.icon),
