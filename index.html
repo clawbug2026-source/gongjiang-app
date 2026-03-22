@@ -22,9 +22,6 @@ html,body{height:100%;background:#1a1714;overscroll-behavior:none;-webkit-tap-hi
 .sp-dot:nth-child(2){animation-delay:.2s}.sp-dot:nth-child(3){animation-delay:.4s}
 @keyframes bk{0%,80%,100%{background:rgba(255,255,255,0.15)}40%{background:#d4420a}}
 </style>
-<link rel="manifest" href="manifest.json"/>
-<link rel="apple-touch-icon" href="icon-192.png"/>
-<script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");</script>
 </head>
 <body>
 <div id="splash">
@@ -1381,21 +1378,29 @@ const AUTH_CSS = `
 .auth-dot.on{background:#d4420a;width:18px;border-radius:3px}
 `;
 
-// MOCK user database (in-memory)
-const USERS_DB_KEY = '__gj_users__';
-function getUsers() {
-  try { return JSON.parse(localStorage.getItem(USERS_DB_KEY)||'[]'); } catch(e){ return []; }
-}
+// In-memory user database (works in all WebView/APK environments)
+const _MEM = { users: [], current: null };
+// Try to restore from localStorage if available
+(function(){
+  try {
+    const u = localStorage.getItem('__gj_users__');
+    const c = localStorage.getItem('__gj_current__');
+    if(u) _MEM.users = JSON.parse(u);
+    if(c) _MEM.current = JSON.parse(c);
+  } catch(e) {}
+})();
+function getUsers() { return _MEM.users; }
 function saveUsers(u) {
-  try { localStorage.setItem(USERS_DB_KEY, JSON.stringify(u)); } catch(e){}
+  _MEM.users = u;
+  try { localStorage.setItem('__gj_users__', JSON.stringify(u)); } catch(e){}
 }
-function getCurrentUser() {
-  try { return JSON.parse(localStorage.getItem('__gj_current__')||'null'); } catch(e){ return null; }
-}
+function getCurrentUser() { return _MEM.current; }
 function setCurrentUser(u) {
+  _MEM.current = u;
   try { localStorage.setItem('__gj_current__', JSON.stringify(u)); } catch(e){}
 }
 function logout() {
+  _MEM.current = null;
   try { localStorage.removeItem('__gj_current__'); } catch(e){}
 }
 
@@ -1599,7 +1604,9 @@ const TABS_COMPANY = [
 
 function App() {
   // Auth state
-  const [authUser, setAuthUser] = useState(()=>getCurrentUser());
+  const [authUser, setAuthUser] = useState(()=>{
+    try { return getCurrentUser(); } catch(e){ return null; }
+  });
   const [authScreen, setAuthScreen] = useState('welcome'); // welcome|login|register
   const [initRole, setInitRole] = useState(null);
 
@@ -1727,6 +1734,13 @@ function App() {
   );
 }
 
+// Global error handler to prevent black screen
+window.addEventListener('error', function(ev){
+  console.error('App error:', ev.error);
+});
+window.addEventListener('unhandledrejection', function(ev){
+  console.error('Unhandled promise:', ev.reason);
+});
 ReactDOM.createRoot(document.getElementById('root')).render(e(App));
 </script>
 </body>
