@@ -984,7 +984,8 @@ function MatchPage({profile, onGoProfile}) {
 /* ════════════════════════════
    2. CHECKIN PAGE
 ════════════════════════════ */
-function CheckinPage({role, authUser}) {
+function CheckinPage({role, authUser, lang: _langProp}) {
+  var lang = _langProp !== undefined ? _langProp : _lang;
   var wname = (authUser&&authUser.name)?authUser.name:'张建国';
   var isCompany = role==='company';
   var todayStr = new Date().toISOString().slice(0,10);
@@ -1174,6 +1175,7 @@ function DiaryPage({role:outerRole}) {
 const MOCK_PHOTOS_LIST = [{e:'📸',c:'施工现场'},{e:'🏗️',c:'结构搭建'},{e:'⚒️',c:'焊接作业'},{e:'🔧',c:'管道安装'},{e:'🧱',c:'砌砖施工'},{e:'📐',c:'测量放线'}];
 
 function WorkerDiary() {
+  var lang = _lang;
   const [ck, setCk] = useState([1]);
   const [text, setText] = useState('');
   const [taskType, setTaskType] = useState('做墙铁');
