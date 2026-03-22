@@ -51,7 +51,7 @@ var I18N = {
     have_account:'已有账户？登录', login_title:'登录',
     login_phone:'手机号', login_pwd:'密码', login_btn:'登录',
     login_demo_worker:'工人演示', login_demo_company:'公司演示',
-    back:'返回', reg_title_worker:'工人注册', reg_title_company:'公司注册',
+    back:t('back'), reg_title_worker:'工人注册', reg_title_company:'公司注册',
     reg_name:'姓名', reg_phone:'手机号', reg_email:'邮箱（选填）',
     reg_pwd:'密码', reg_confirm:'确认密码', reg_company:'公司名称',
     reg_abn:'ABN（选填）', reg_btn:'注册', already_account:'已有账户？登录',
@@ -62,8 +62,8 @@ var I18N = {
     tab_location:'工人位置', tab_project:'项目管理', tab_recruit:'招聘',
     tab_workers:t('wm_title'), tab_company_profile:'公司资料',
     /* Match page */
-    match_title:'智能匹配', match_sort_match:'匹配度', match_sort_pay:'薪资最高', match_sort_rating:'好评优先',
-    match_apply:'立即申请', match_later:'稍后再看', match_score:'匹配分',
+    match_title:t('match_title'), match_sort_match:t('match_sort_match'), match_sort_pay:t('match_sort_pay'), match_sort_rating:t('match_sort_rating'),
+    match_apply:t('match_apply'), match_later:t('match_later'), match_score:'匹配分',
     match_hint:'请前往「我的」填写工种和城市，匹配结果更精准',
     /* Checkin */
     gps_locating:'定位中…', gps_get:'获取GPS位置', gps_ok:'已定位',
@@ -77,7 +77,7 @@ var I18N = {
     /* Diary */
     diary_worker:'工作日志', diary_add:'添加日志', diary_date:'日期',
     diary_task:'任务类型', diary_hours:'工时', diary_content:'工作内容',
-    diary_photos:'照片', diary_save:'保存', diary_tasks_today:'今日任务',
+    diary_photos:'照片', diary_save:t('save'), diary_tasks_today:'今日任务',
     diary_done:t('proj_done'), diary_undone:'未完成',
     /* Project */
     proj_title:t('proj_title'), proj_add:t('proj_add'), proj_edit:'修改项目',
@@ -116,7 +116,7 @@ var I18N = {
     wm_title:t('wm_title'), wm_all:'全部', wm_add_lookup:'添加工人（手机号/账号）',
     wm_add_manual:'手动填写', wm_add:'新增工人', wm_search:'查找',
     wm_not_found:'未找到该用户', wm_add_confirm:'✅ 添加到工人管理',
-    wm_pending_apps:'待处理申请', wm_accept:'✅ 录取', wm_reject:t('wm_reject'),
+    wm_pending_apps:t('wm_pending_apps'), wm_accept:'✅ 录取', wm_reject:t('wm_reject'),
     wm_accept_full:t('wm_accept_full'), wm_delete:t('delete'),
     wm_edit:t('wm_edit'), wm_back:t('wm_back'),
     status_active:t('status_active'), status_probation:t('status_probation'), status_inactive:t('status_inactive'),
@@ -136,11 +136,11 @@ var I18N = {
     selected_change:'更换', no_nearby:'暂无附近建筑物',
     /* Common */
     workers:'人', tasks:'任务', complete:'完成', start_date:'开始',
-    save:'保存', cancel:t('cancel'), delete:t('delete'), edit:'编辑',
+    save:t('save'), cancel:t('cancel'), delete:t('delete'), edit:t('edit'),
     back_list:'← 返回', no_data:'暂无数据', loading:t('loading'),
-    male:'男', female:'女', yes:'有', no:'无', unknown:'—',
+    male:t('male'), female:t('female'), yes:t('yes'), no:t('no'), unknown:'—',
     per_hour:'时', per_day:'天', per_week:'周', per_year:'年',
-    weekly_wed_tue:'每周三至下周二', no_require:'无要求', years_above:'年以上',
+    weekly_wed_tue:'每周三至下周二', no_require:t('no_exp'), years_above:'年以上',
   },
   en: {
     /* Auth */
@@ -242,6 +242,28 @@ var I18N = {
     male:'Male', female:'Female', yes:'Yes', no:'No', unknown:'—',
     per_hour:'hr', per_day:'day', per_week:'wk', per_year:'yr',
     weekly_wed_tue:'Wed to next Tue', no_require:'No requirement', years_above:'+ yrs',
+    /* Extra UI */
+    match_hint2:'Fill in your trade & city in Profile for better matches',
+    ai_analysis:'AI Match Analysis', match_good:'✅ Good Match',
+    week1_only:'Within 1st week only',
+    rating_warn:'Worker can only rate company within 7 days of joining.',
+    rating_expired:'Review window closed (first week only)',
+    company_size_1:'1-10 staff', company_size_2:'10-20 staff', company_size_3:'20-50 staff',
+    company_size_4:'50-200 staff', company_size_5:'200+ staff',
+    pay_weekly:'Weekly', pay_biweekly:'Fortnightly', pay_monthly:'Monthly', pay_end:'End of Project',
+    no_exp:'No requirement', exp_1:'1+ yrs', exp_2:'2+ yrs', exp_3:'3+ yrs',
+    exp_5:'5+ yrs', exp_8:'8+ yrs',
+    gps_unsupported:'GPS not supported',
+    location_allow:'Please allow location access',
+    location_unavail:'Unable to get location',
+    location_timeout:'Location timeout',
+    apply_success:'✅ Application submitted! Awaiting company response',
+    apply_dup:'You have already applied for this position',
+    confirm_delete:'Confirm delete?',
+    worker_already:'Worker already in list',
+    pending_apps:'Pending Applications',
+    no_pending:'No pending applications',
+    welcome_back:'Welcome to GongJiangTong, entering ',
   }
 };
 
@@ -761,13 +783,13 @@ function ScoreRing({score}) {
    1. MATCH PAGE
 ════════════════════════════ */
 function MatchPage({profile, onGoProfile}) {
-  const [sort, setSort] = useState('匹配度');
+  const [sort, setSort] = useState(t('match_sort_match'));
   const [sel, setSel] = useState(null);
   const [spin, setSpin] = useState(false);
 
   const scored = JOBS_DB.map(j => ({...j, mr: calcMatch(j, profile)}));
   const sorted = [...scored].sort((a,b) =>
-    sort==='匹配度'?b.mr.total-a.mr.total:sort==='薪资最高'?b.payRate-a.payRate:b.rating-a.rating
+    sort===t('match_sort_match')?b.mr.total-a.mr.total:sort===t('match_sort_pay')?b.payRate-a.payRate:b.rating-a.rating
   );
   const top = sorted.filter(j=>j.mr.total>=45).slice(0,5);
   const rest = sorted.filter(j=>j.mr.total<45).slice(0,3);
@@ -793,7 +815,7 @@ function MatchPage({profile, onGoProfile}) {
     ),
 
     /* Profile banner */
-    noProfile && e('div',{className:'warn-banner'},'⚠️ 请前往「我的」填写工种和城市，匹配结果更精准'),
+    noProfile && e('div',{className:'warn-banner'},t('match_hint2')),
 
     e('div',{className:'prof-banner'},
       e('div',{className:'pb-av'},(profile.name||'我')[0]),
@@ -819,7 +841,7 @@ function MatchPage({profile, onGoProfile}) {
     /* Sort */
     e('div',{className:'sort-row'},
       e('span',{style:{fontSize:10,color:'var(--sub)',whiteSpace:'nowrap',flexShrink:0}},'排序：'),
-      ...['匹配度','薪资最高','信誉最佳'].map(s=>
+      ...[t('match_sort_match'),t('match_sort_pay'),'信誉最佳'].map(s=>
         e('button',{key:s,className:`sc ${sort===s?'on':''}`,onClick:()=>setSort(s)},s)
       )
     ),
@@ -877,7 +899,7 @@ function MatchPage({profile, onGoProfile}) {
             ),
             e('div',{className:'li-sub'},`${job.city} · ${job.types.join('/')}`),
             e('div',{className:'ms-row'},
-              e('span',{className:'ms-lbl'},'匹配度'),
+              e('span',{className:'ms-lbl'},t('match_sort_match')),
               e('div',{className:'ms-bar'},e('div',{className:'ms-fill fill-l',style:{width:`${job.mr.total}%`}})),
               e('span',{className:'ms-num num-low'},`${job.mr.total}%`)
             )
@@ -901,11 +923,11 @@ function MatchPage({profile, onGoProfile}) {
           )
         ),
         e('div',{className:'sh-sec'},
-          e('div',{className:'sh-sec-title'},'AI 匹配分析'),
+          e('div',{className:'sh-sec-title'},t('ai_analysis')),
           e('div',{className:'ring-wrap'},
             ScoreRing({score:sel.mr.total}),
             e('div',{className:'ring-reason'},
-              e('h4',null,sel.mr.total>=80?'🏆 高度吻合，强烈推荐！':sel.mr.total>=65?'✅ 匹配良好':'📋 基本符合'),
+              e('h4',null,sel.mr.total>=80?'🏆 高度吻合，强烈推荐！':sel.mr.total>=65?t('match_good'):'📋 基本符合'),
               e('p',null,(sel.mr.overlap||[]).length>0?`工种「${(sel.mr.overlap||[]).join('、')}」吻合，`:'',
                 sel.mr.dims.city?.match?'地区匹配。':'地区不符，需通勤。')
             )
@@ -934,7 +956,7 @@ function MatchPage({profile, onGoProfile}) {
           e('div',{style:{fontSize:12,marginTop:8}},`💰 A$${sel.payRate}/${sel.payUnit} · 结算：${sel.payDay}`)
         ),
         e('div',{className:'btn-row'},
-          e('button',{className:'btn btn-s',onClick:()=>setSel(null)},'稍后再看'),
+          e('button',{className:'btn btn-s',onClick:()=>setSel(null)},t('match_later')),
           e('button',{className:'btn btn-p',onClick:()=>{
             if(!_MEM.applications)_MEM.applications=[];
             var already = _MEM.applications.some(function(a){return a.jobId===sel.id && a.workerName===(profile&&profile.name||'工人');});
@@ -948,9 +970,9 @@ function MatchPage({profile, onGoProfile}) {
               });
               _saveApps();
             }
-            alert(already?'您已申请过该职位':'✅ 申请已提交，等待公司回复');
+            alert(already?t('apply_dup'):t('apply_success'));
             setSel(null);
-          }},'立即申请')
+          }},t('match_apply'))
         )
       )
     )
@@ -992,7 +1014,7 @@ function CheckinPage({role, authUser}) {
   },[punchIn,punchOut]);
 
   function getGPS(){
-    if(!navigator.geolocation){setGpsStatus('error');setGpsMsg('不支持GPS');return;}
+    if(!navigator.geolocation){setGpsStatus('error');setGpsMsg(t('gps_unsupported'));return;}
     setGpsStatus('searching');setGpsMsg('定位中…');
     navigator.geolocation.getCurrentPosition(
       function(pos){
@@ -1003,7 +1025,7 @@ function CheckinPage({role, authUser}) {
             if(d&&d.address){var a=d.address;setAddress((a.road||a.suburb||'')+(a.city?', '+a.city:''));}
           }).catch(function(){});
       },
-      function(err){setGpsStatus('error');setGpsMsg({1:'请允许位置权限',2:'无法获取位置',3:'定位超时'}[err.code]||'失败');},
+      function(err){setGpsStatus('error');setGpsMsg({1:t('location_allow'),2:t('location_unavail'),3:t('location_timeout')}[err.code]||'失败');},
       {enableHighAccuracy:true,timeout:15000,maximumAge:0}
     );
   }
@@ -1066,8 +1088,8 @@ function CheckinPage({role, authUser}) {
       ),
       e('div',{style:{padding:'12px 16px'}},
         (isCompany?[
-          ['今日在场',WDOTS.length+'人','ci-g'],['实时时间',timeStr,''],
-          ['本周周期',_wklabel(todayStr),''],['今日日期',now.toLocaleDateString('zh-CN'),'']
+          [t('today_attendance'),WDOTS.length+'人','ci-g'],[(lang==='en'?'Current Time':'实时时间'),timeStr,''],
+          [(lang==='en'?'Week Cycle':'本周周期'),_wklabel(todayStr),''],[(lang==='en'?"Today's Date":'今日日期'),now.toLocaleDateString('zh-CN'),'']
         ]:[
           ['GPS',gpsStatus==='ok'?('✅ 已定位 '+gpsMsg):gpsStatus==='searching'?('🔍 '+t('gps_locating')):'❌ '+gpsMsg,gpsStatus==='ok'?'ci-g':'ci-r'],
           ['地址',address||'—',''],
@@ -1220,7 +1242,7 @@ function WorkerDiary() {
           e('input',{className:'hrs-in',type:'number',step:0.5,value:hours,onChange:ev=>setHours(ev.target.value),placeholder:'工时'}),
           e('span',{style:{fontSize:11,color:'var(--sub)'}},'小时')
         ),
-        e('div',{className:'tc-lbl'},'✅ 确认今日任务完成'),
+        e('div',{className:'tc-lbl'},(lang==='en'?"✅ Confirm today's tasks done":'✅ 确认今日任务完成')),
         ...ASSIGNED_TODAY.map(t=>
           e('div',{key:t.id,className:'tc-item'},
             e('div',{className:`tc-box ${ck.includes(t.id)?'on':''}`,onClick:()=>toggleCk(t.id)},ck.includes(t.id)?'✓':''),
@@ -1448,7 +1470,7 @@ function CompanyDiary() {
           ),
           e('div',{className:'pj-acts'},
             e('button',{className:'pj-act pja-edit',onClick:ev=>{ev.stopPropagation();setProjForm({name:p.name,site:p.site,desc:p.desc||'',color:p.color,workers:p.workers||[]});setSelProj(p);setView('editProj');}},'✏️ 修改项目'),
-            e('button',{className:'pj-act pja-task',onClick:ev=>{ev.stopPropagation();setSelProj(p);setView('detail');setShowTaskForm(true);}},'＋ 派发任务'),
+            e('button',{className:'pj-act pja-task',onClick:ev=>{ev.stopPropagation();setSelProj(p);setView('detail');setShowTaskForm(true);}},('＋ '+t('proj_dispatch'))),
             e('button',{className:'pj-act pja-del',onClick:ev=>{ev.stopPropagation();saveProjects(projects.filter(x=>x.id!==p.id));}},t('delete'))
           )
         );
@@ -1507,7 +1529,7 @@ function CompanyDiary() {
         e('div',{style:{fontSize:11,fontWeight:700,color:'var(--sub)',letterSpacing:1,textTransform:'uppercase',margin:'14px 0 8px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
           e('span',null,'📌 任务'),
           e('button',{style:{background:'var(--g)',color:'#fff',border:'none',padding:'5px 12px',borderRadius:6,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"},
-            onClick:()=>{setTaskForm({name:'',area:'',quota:'',assignTo:'',dueTime:'18:00'});setEditTaskId(null);setShowTaskForm(true);}},'＋ 派发任务')
+            onClick:()=>{setTaskForm({name:'',area:'',quota:'',assignTo:'',dueTime:'18:00'});setEditTaskId(null);setShowTaskForm(true);}},('＋ '+t('proj_dispatch')))
         ),
         showTaskForm&&e('div',{className:'atf',style:{marginBottom:10}},
           e('div',{className:'atf-title'},editTaskId?'✏️ 编辑任务':('➕ '+t('proj_new_task'))),
@@ -1533,7 +1555,7 @@ function CompanyDiary() {
                 : [...projTasks,{id:Date.now(),...taskForm,done:false,color:proj.color}];
               setProjTasks(proj.id,newTasks);
               setShowTaskForm(false);setEditTaskId(null);
-            }},editTaskId?'保存':'派发')
+            }},editTaskId?t('save'):'派发')
           )
         ),
         projTasks.length===0&&!showTaskForm&&e('div',{style:{padding:'12px 0',textAlign:'center',color:'var(--sub)',fontSize:12}},t('proj_no_tasks')),
@@ -1546,7 +1568,7 @@ function CompanyDiary() {
               t.quota&&e('div',{className:'ptask-std'},'⚠️ '+t.quota)
             ),
             e('div',{className:'ptask-acts'},
-              e('button',{className:'ptask-btn ptask-edit',onClick:()=>{setTaskForm({name:t.name,area:t.area||'',quota:t.quota||'',assignTo:t.assignTo||'',dueTime:t.dueTime||'18:00'});setEditTaskId(t.id);setShowTaskForm(true);}},'编辑'),
+              e('button',{className:'ptask-btn ptask-edit',onClick:()=>{setTaskForm({name:t.name,area:t.area||'',quota:t.quota||'',assignTo:t.assignTo||'',dueTime:t.dueTime||'18:00'});setEditTaskId(t.id);setShowTaskForm(true);}},t('edit')),
               e('button',{className:'ptask-btn',style:{background:t.done?'#e8f5ee':'#e8f0ff',color:t.done?'var(--g)':'var(--b)'},
                 onClick:()=>{setProjTasks(proj.id,projTasks.map(x=>x.id===t.id?{...x,done:!x.done}:x));}},(t.done?'✅':'○')+' '+(t.done?t('proj_done'):t('task_mark_done'))),
               e('button',{className:'ptask-btn ptask-del',onClick:()=>setProjTasks(proj.id,projTasks.filter(x=>x.id!==t.id))},t('delete'))
@@ -1632,7 +1654,7 @@ function RatingPage({role}) {
 
     tab==='companies'&&e('div',null,
       e('div',{className:'hint-y',style:{margin:'10px 16px 0'}},
-        '⏰ 工人对公司的评价需在入职后第一周内（7天内）完成，逾期将无法评价。'),
+        t('rating_warn')),
       e('div',{className:'card',style:{margin:'8px 16px 0'}},
         ...COMPANIES_RATED.map(c=>{
           const myR=companyRatings[c.id], rated=!!myR, canRate=c.weeksPassed<=1;
@@ -1667,7 +1689,7 @@ function RatingPage({role}) {
               e('div',{className:'rc-badges'},...c.badges.map((b,j)=>e('span',{key:j,className:`badge ${['bg-gold','bg-b','bg-g'][j%3]}`},b))),
               e('div',{className:'rc-review'},`"${c.review}"`)
             ),
-            !canRate&&!rated&&e('div',{style:{marginTop:7,fontSize:10,color:'var(--sub)',background:'var(--s3)',padding:'6px 9px',borderRadius:6}},'⏰ 评价窗口已关闭（仅限入职第一周内）')
+            !canRate&&!rated&&e('div',{style:{marginTop:7,fontSize:10,color:'var(--sub)',background:'var(--s3)',padding:'6px 9px',borderRadius:6}},t('rating_expired'))
           );
         })
       )
@@ -1717,7 +1739,7 @@ function RatingPage({role}) {
         e('div',{className:'sh-hd'},
           e('div',null,e('div',{className:'sh-title'},`评价 · ${ratingTarget.name}`)),
           e('div',{style:{display:'flex',gap:6,alignItems:'center'}},
-            !companyRatings[ratingTarget.id]&&e('span',{style:{fontSize:10,color:'var(--r)',background:'#fff0ec',padding:'3px 8px',borderRadius:6,fontWeight:700}},'⏰ 仅限第1周'),
+            !companyRatings[ratingTarget.id]&&e('span',{style:{fontSize:10,color:'var(--r)',background:'#fff0ec',padding:'3px 8px',borderRadius:6,fontWeight:700}},t('week1_only')),
             e('button',{className:'sh-close',onClick:()=>setRatingTarget(null)},'✕')
           )
         ),
@@ -1793,7 +1815,7 @@ function ProfilePage(props) {
         e('div',{className:'sec-divider'},'基本信息'),
         e('div',{className:'fr2'},
           e('div',{className:'fg'},e('label',{className:'fl fl-req'},'姓名'),e('input',{className:'fi',value:d.name||'',onChange:ev=>setF('name',ev.target.value),placeholder:'真实姓名'})),
-          e('div',{className:'fg'},e('label',{className:'fl'},'性别'),e('div',{className:'chips'},...['男','女'].map(v=>e('button',{key:v,className:'chip '+(d.gender===v?'on-r':''),onClick:()=>setF('gender',v)},v))))
+          e('div',{className:'fg'},e('label',{className:'fl'},'性别'),e('div',{className:'chips'},...[t('male'),t('female')].map(v=>e('button',{key:v,className:'chip '+(d.gender===v?'on-r':''),onClick:()=>setF('gender',v)},v))))
         ),
         e('div',{className:'fr2'},
           e('div',{className:'fg'},e('label',{className:'fl'},'年龄'),e('input',{className:'fi',type:'number',value:d.age||'',onChange:ev=>setF('age',ev.target.value),placeholder:'如：35'})),
@@ -1806,7 +1828,7 @@ function ProfilePage(props) {
         e('div',{className:'fg'},e('label',{className:'fl fl-req'},'应聘工种（多选）'),Chips(JOB_TYPES,'types','b')),
         e('div',{className:'fr2'},
           e('div',{className:'fg'},e('label',{className:'fl fl-req'},'工龄（年）'),e('input',{className:'fi',type:'number',value:d.experience||'',onChange:ev=>setF('experience',parseInt(ev.target.value)||0),placeholder:'如：8'})),
-          e('div',{className:'fg'},e('label',{className:'fl fl-req'},'交通工具'),e('div',{className:'chips'},...['有','无'].map(v=>e('button',{key:v,className:'chip '+((d.hasVehicle?'有':'无')===v?'on':''),onClick:()=>setF('hasVehicle',v==='有')},v))))
+          e('div',{className:'fg'},e('label',{className:'fl fl-req'},'交通工具'),e('div',{className:'chips'},...[t('yes'),t('no')].map(v=>e('button',{key:v,className:'chip '+((d.hasVehicle?t('yes'):t('no'))===v?'on':''),onClick:()=>setF('hasVehicle',v===t('yes'))},v))))
         ),
         e('div',{className:'fr2'},
           e('div',{className:'fg'},e('label',{className:'fl fl-req'},'预计时薪（A$）'),e('input',{className:'fi',type:'number',value:d.payExpect||'',onChange:ev=>setF('payExpect',parseFloat(ev.target.value)||0),placeholder:'如：40'})),
@@ -1819,8 +1841,8 @@ function ProfilePage(props) {
         e('div',{className:'fg'},e('label',{className:'fl fl-req'},'公司名称'),e('input',{className:'fi',value:d.name||'',onChange:ev=>setF('name',ev.target.value),placeholder:'公司全称'})),
         e('div',{className:'fg'},e('label',{className:'fl fl-req'},'所在城市（多选）'),Chips(CITIES_LIST.slice(0,5),'cities','b')),
         e('div',{className:'fr2'},
-          e('div',{className:'fg'},e('label',{className:'fl fl-req'},'公司规模'),e('select',{className:'fi',value:d.headcount||'',onChange:ev=>setF('headcount',ev.target.value)},e('option',{value:''},'请选择'),...['1-10人','10-20人','20-50人','50-200人','200人以上'].map(o=>e('option',{key:o},o)))),
-          e('div',{className:'fg'},e('label',{className:'fl fl-req'},'薪资周期'),e('select',{className:'fi',value:d.payDay||'',onChange:ev=>setF('payDay',ev.target.value)},e('option',{value:''},'请选择'),...['周结','两周结','月结','项目完结'].map(o=>e('option',{key:o},o))))
+          e('div',{className:'fg'},e('label',{className:'fl fl-req'},'公司规模'),e('select',{className:'fi',value:d.headcount||'',onChange:ev=>setF('headcount',ev.target.value)},e('option',{value:''},'请选择'),...[t('company_size_1'),t('company_size_2'),t('company_size_3'),t('company_size_4'),t('company_size_5')].map(o=>e('option',{key:o},o)))),
+          e('div',{className:'fg'},e('label',{className:'fl fl-req'},'薪资周期'),e('select',{className:'fi',value:d.payDay||'',onChange:ev=>setF('payDay',ev.target.value)},e('option',{value:''},'请选择'),...[t('pay_weekly'),t('pay_biweekly'),t('pay_monthly'),t('pay_end')].map(o=>e('option',{key:o},o))))
         ),
         e('div',{className:'sec-divider'},'工程内容 ⭐'),
         e('div',{className:'fg'},e('label',{className:'fl fl-req'},'所需工种'),Chips(JOB_TYPES,'types','b')),
@@ -1897,9 +1919,9 @@ function logout() {
 }
 
 /* ── WELCOME SCREEN ── */
-function WelcomeScreen({onLogin, onRegister}) {
+function WelcomeScreen({onLogin, onRegister, onSwitchLang}) {
   const [lang, setLangState] = useState(_lang);
-  const switchLang = () => { const nl = lang==='zh'?'en':'zh'; setLang(nl); setLangState(nl); };
+  const switchLang = () => { const nl = lang==='zh'?'en':'zh'; if(onSwitchLang) onSwitchLang(nl); else { setLang(nl); setLangState(nl); } };
   return e('div',{className:'auth-wrap'},
     e('button',{onClick:switchLang,style:{
       position:'absolute',top:16,right:16,background:'rgba(255,255,255,0.12)',border:'1px solid rgba(255,255,255,0.25)',
@@ -1930,7 +1952,8 @@ function WelcomeScreen({onLogin, onRegister}) {
 }
 
 /* ── REGISTER SCREEN ── */
-function RegisterScreen({initRole, onBack, onDone}) {
+function RegisterScreen({initRole, onBack, onDone, onSwitchLang}) {
+  const lang = _lang;
   const [step, setStep] = useState(1); // 1=role, 2=info, 3=done
   const [role, setRole] = useState(initRole||'worker');
   const [form, setForm] = useState({name:'',phone:'',email:'',password:'',confirm:'',
@@ -1979,7 +2002,7 @@ function RegisterScreen({initRole, onBack, onDone}) {
 
   return e('div',{className:'auth-wrap'},
     e('button',{className:'auth-back',onClick:step===1?onBack:()=>setStep(step-1)},
-      '← '+(step===1?'返回':'上一步')),
+      '← '+(step===1?t('back'):(lang==='en'?'Back':'上一步'))),
     e('div',{className:'auth-step-dots'},...dots),
 
     step===1 && e('div',{className:'auth-card'},
@@ -1997,7 +2020,7 @@ function RegisterScreen({initRole, onBack, onDone}) {
           e('div',{className:'role-card-desc'},'招工·管理·任务·审查')
         )
       ),
-      e('button',{className:`auth-btn ${role==='worker'?'auth-btn-w':'auth-btn-c'}`,onClick:goStep2},'下一步 →')
+      e('button',{className:`auth-btn ${role==='worker'?'auth-btn-w':'auth-btn-c'}`,onClick:goStep2},(lang==='en'?'Next →':'下一步 →'))
     ),
 
     step===2 && e('div',{className:'auth-card'},
@@ -2026,7 +2049,9 @@ function RegisterScreen({initRole, onBack, onDone}) {
 }
 
 /* ── LOGIN SCREEN ── */
-function LoginScreen({onBack, onDone}) {
+function LoginScreen({onBack, onDone, onSwitchLang}) {
+  const [lang, setLangState] = useState(_lang);
+  const switchLang = () => { const nl = _lang==='zh'?'en':'zh'; setLang(nl); setLangState(nl); if(onSwitchLang) onSwitchLang(nl); };
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [err, setErr] = useState('');
@@ -2093,13 +2118,13 @@ if(!_MEM.roster){
   _MEM.roster = [
     {id:1,name:'张建国',phone:'0412-111-222',email:'zhang@email.com',type:'电工',status:'active',
      pay:45,payUnit:'时',joined:'2024-01-15',abn:'12 345 678 901',address:'悉尼 NSW 2000',
-     emergency:'张太太 0411-999-888',notes:'持白卡、电工证',gender:'男',age:38},
+     emergency:'张太太 0411-999-888',notes:'持白卡、电工证',gender:t('male'),age:38},
     {id:2,name:'刘大明',phone:'0412-333-444',email:'liu@email.com',type:'钢筋工',status:'active',
      pay:42,payUnit:'时',joined:'2024-02-01',abn:'98 765 432 109',address:'墨尔本 VIC 3000',
-     emergency:'刘父 0422-777-666',notes:'有驾照',gender:'男',age:35},
+     emergency:'刘父 0422-777-666',notes:'有驾照',gender:t('male'),age:35},
     {id:3,name:'王建华',phone:'0412-555-666',email:'wang@email.com',type:'水泥工',status:'inactive',
      pay:40,payUnit:'时',joined:'2023-11-01',abn:'',address:'布里斯班 QLD 4000',
-     emergency:'',notes:'',gender:'男',age:42},
+     emergency:'',notes:'',gender:t('male'),age:42},
   ];
 }
 try{var _wr=localStorage.getItem('__gj_roster__');if(_wr)_MEM.roster=JSON.parse(_wr);}catch(e){}
@@ -2176,7 +2201,7 @@ function WorkerMgmtPage() {
       e('div',{style:{display:'flex',gap:8,marginBottom:0}},
         e('button',{className:'wm-add-btn',style:{flex:1},onClick:()=>{setView('lookup');}},('📱 '+t('wm_add_lookup'))),
         e('button',{className:'wm-add-btn',style:{flex:1},onClick:()=>{
-          setForm({name:'',phone:'',email:'',type:'做墙铁',status:'probation',pay:'',payUnit:'时',joined:new Date().toISOString().slice(0,10),abn:'',address:'',emergency:'',notes:'',gender:'男',age:''});
+          setForm({name:'',phone:'',email:'',type:'做墙铁',status:'probation',pay:'',payUnit:'时',joined:new Date().toISOString().slice(0,10),abn:'',address:'',emergency:'',notes:'',gender:t('male'),age:''});
           setView('add');
         }},('📝 '+t('wm_add_manual')))
       ),
@@ -2288,7 +2313,7 @@ function WorkerMgmtPage() {
             style:{width:'100%',padding:'11px',border:'none',background:'var(--g)',color:'#fff',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"},
             onClick:()=>{
               var already = roster.some(function(w){return w.phone===found.phone||w.name===found.name;});
-              if(already){alert('该工人已在名单中');return;}
+              if(already){alert(t('worker_already'));return;}
               var prof = found.profile||{};
               var newW = {
                 id:Date.now(), name:found.name, phone:found.phone||'', email:found.email||'',
@@ -2307,7 +2332,7 @@ function WorkerMgmtPage() {
       e('div',{style:{padding:'0 16px'}},
         e('div',{style:{fontSize:11,fontWeight:700,color:'var(--sub)',letterSpacing:1,textTransform:'uppercase',marginBottom:10}},'📥 待处理申请'),
         (_MEM.applications||[]).filter(function(a){return a.status==='pending';}).length===0
-          ? e('div',{style:{fontSize:12,color:'var(--sub)',padding:'8px 0'}},'暂无待处理申请')
+          ? e('div',{style:{fontSize:12,color:'var(--sub)',padding:'8px 0'}},t('no_pending'))
           : (_MEM.applications||[]).filter(function(a){return a.status==='pending';}).map(function(a){
             return e('div',{key:a.id,style:{background:'var(--sur)',borderRadius:11,border:'1px solid var(--bd)',marginBottom:8,overflow:'hidden'}},
               e('div',{style:{padding:'12px 14px',display:'flex',alignItems:'center',gap:10}},
@@ -2363,8 +2388,8 @@ function WorkerMgmtPage() {
         e('span',{className:'wf-label'},'基本信息'),
         e('div',{className:'wf-row'},
           e('input',{className:'wf-in',placeholder:'姓名 *',value:form.name||'',onChange:ev=>setF('name',ev.target.value)}),
-          e('select',{className:'wf-sel',value:form.gender||'男',onChange:ev=>setF('gender',ev.target.value)},
-            ['男','女'].map(v=>e('option',{key:v},v)))
+          e('select',{className:'wf-sel',value:form.gender||t('male'),onChange:ev=>setF('gender',ev.target.value)},
+            [t('male'),t('female')].map(v=>e('option',{key:v},v)))
         ),
         e('div',{className:'wf-row'},
           e('input',{className:'wf-in',placeholder:'年龄',type:'number',value:form.age||'',onChange:ev=>setF('age',ev.target.value)}),
@@ -2645,6 +2670,10 @@ function App() {
   const [authScreen, setAuthScreen] = useState('welcome'); // welcome|login|register
   const [initRole, setInitRole] = useState(null);
 
+  // Language state - drives full app re-render on switch
+  const [lang, setLangState] = useState(_lang);
+  const switchLang = (l) => { setLang(l); setLangState(l); };
+
   // App state
   const [tab, setTab] = useState('match');
   const [workerProfile, setWorkerProfile] = useState(DEFAULT_WORKER);
@@ -2695,14 +2724,16 @@ function App() {
       e('style',null,AUTH_CSS),
       e(WelcomeScreen,{
         onLogin:()=>setAuthScreen('login'),
-        onRegister:(r)=>{setInitRole(r);setAuthScreen('register');}
+        onRegister:(r)=>{setInitRole(r);setAuthScreen('register');},
+        onSwitchLang:switchLang
       })
     );
     if(authScreen==='login') return e('div',null,
       e('style',null,AUTH_CSS),
       e(LoginScreen,{
         onBack:()=>setAuthScreen('welcome'),
-        onDone:handleAuthDone
+        onDone:handleAuthDone,
+        onSwitchLang:switchLang
       })
     );
     if(authScreen==='register') return e('div',null,
@@ -2710,12 +2741,14 @@ function App() {
       e(RegisterScreen,{
         initRole,
         onBack:()=>setAuthScreen('welcome'),
-        onDone:handleAuthDone
+        onDone:handleAuthDone,
+        onSwitchLang:switchLang
       })
     );
     return e('div',null,e('style',null,AUTH_CSS),e(WelcomeScreen,{
       onLogin:()=>setAuthScreen('login'),
-      onRegister:(r)=>{setInitRole(r);setAuthScreen('register');}
+      onRegister:(r)=>{setInitRole(r);setAuthScreen('register');},
+      onSwitchLang:switchLang
     }));
   }
 
@@ -2729,14 +2762,14 @@ function App() {
   const validTab = TABS.find(t=>t.key===tab) ? tab : TABS[0].key;
 
   const pages = {
-    match:   e(MatchPage,   {profile:workerProfile, onGoProfile:()=>setTab('profile')}),
-    checkin: e(CheckinPage, {role, authUser}),
-    diary:   e(DiaryPage,   {role}),
-    recruit: e(RecruitPage, {}),
-    workers: e(WorkerMgmtPage, {}),
-    rating:  e(RatingPage,  {role}),
+    match:   e(MatchPage,   {profile:workerProfile, onGoProfile:()=>setTab('profile'), lang}),
+    checkin: e(CheckinPage, {role, authUser, lang}),
+    diary:   e(DiaryPage,   {role, lang}),
+    recruit: e(RecruitPage, {lang}),
+    workers: e(WorkerMgmtPage, {lang}),
+    rating:  e(RatingPage,  {role, lang}),
     profile: e(ProfilePage, {
-      profile:workerProfile, setProfile:handleSetWorkerProfile,
+      profile:workerProfile, setProfile:handleSetWorkerProfile, lang,
       companyProfile, setCompanyProfile:handleSetCompanyProfile,
       role, setRole:()=>{},
       onLogout:handleLogout,
@@ -2752,12 +2785,18 @@ function App() {
     e('div', {className:'topbar'},
       e('div', null,
         e('div', {className:'logo'}, '工', e('span',{className:'logo-r'},'匠'), '通'),
-        e('div', {className:'logo-sub'}, isWorker?'工人端 — 找工作·签到·日志':'公司端 — 管理·任务·招工')
+        e('div', {className:'logo-sub'}, isWorker?(lang==='en'?'Worker — Jobs·Clock In·Logs':'工人端 — 找工作·签到·日志'):(lang==='en'?'Company — Projects·Recruit·Manage':'公司端 — 管理·任务·招工'))
       ),
       e('div', {className:'topbar-right'},
+        e('button',{onClick:()=>switchLang(lang==='zh'?'en':'zh'),style:{
+          background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.2)',
+          color:'rgba(255,255,255,0.85)',padding:'3px 9px',borderRadius:14,
+          fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif",
+          marginRight:6,flexShrink:0
+        }},lang==='zh'?'EN':'中文'),
         e('div',{style:{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:1}},
           e('div',{className:`role-pill ${isWorker?'rp-w':'rp-c'}`,style:{cursor:'default'}},
-            isWorker?'👷 工人':'🏢 公司'),
+            isWorker?(lang==='en'?'👷 Worker':'👷 工人'):(lang==='en'?'🏢 Company':'🏢 公司')),
           e('div',{style:{fontSize:9,color:'var(--sub)',maxWidth:80,textAlign:'right',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},
             authUser.name)
         ),
@@ -2765,7 +2804,7 @@ function App() {
           onClick:()=>setTab('profile')},avatarName)
       )
     ),
-    pages[validTab],
+    e('div',{key:lang,style:{flex:1,overflow:'auto',minHeight:0}},pages[validTab]),
     e('div', {className:'bottom-nav'},
       ...TABS.map(t =>
         e('button', {key:t.key, className:`nb ${validTab===t.key?'on':''}`, onClick:()=>setTab(t.key)},
