@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://nominatim.openstreetmap.org https://overpass-api.de blob: data:;">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -31,8 +32,8 @@ html,body{height:100%;background:#1a1714;overscroll-behavior:none;-webkit-tap-hi
   <div class="sp-dots"><div class="sp-dot"></div><div class="sp-dot"></div><div class="sp-dot"></div></div>
 </div>
 <div id="root"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
 <script>
 'use strict';
 
@@ -2003,7 +2004,7 @@ function RegisterScreen({initRole, onBack, onDone, onSwitchLang}) {
     setTimeout(()=>onDone(newUser), 1500);
   };
 
-  const dots = [1,2,3].map((n,i)=>e('div',{key:n,className:`auth-dot ${step===n?'on':''}`}));
+  const dots = [1,2,3].map((n,i)=>e('div',{key:n,className:('auth-dot '+(step===n?'on':''))}));
 
   return e('div',{className:'auth-wrap'},
     e('button',{className:'auth-back',onClick:step===1?onBack:()=>setStep(step-1)},
@@ -2014,18 +2015,18 @@ function RegisterScreen({initRole, onBack, onDone, onSwitchLang}) {
       e('div',{className:'auth-title'},'选择注册身份'),
       e('div',{className:'auth-desc'},'请选择您的身份类型，注册后可在相应端使用全部功能'),
       e('div',{className:'role-cards'},
-        e('div',{className:`role-card ${role==='worker'?'sel-w':''}`,onClick:()=>setRole('worker')},
+        e('div',{className:('role-card '+(role==='worker'?'sel-w':'')),onClick:()=>setRole('worker')},
           e('div',{className:'role-card-icon'},'👷'),
           e('div',{className:'role-card-name'},t('reg_title_worker')),
           e('div',{className:'role-card-desc'},'找工作·打卡·日志·信誉')
         ),
-        e('div',{className:`role-card ${role==='company'?'sel-c':''}`,onClick:()=>setRole('company')},
+        e('div',{className:('role-card '+(role==='company'?'sel-c':'')),onClick:()=>setRole('company')},
           e('div',{className:'role-card-icon'},'🏢'),
           e('div',{className:'role-card-name'},t('reg_title_company')),
           e('div',{className:'role-card-desc'},'招工·管理·任务·审查')
         )
       ),
-      e('button',{className:`auth-btn ${role==='worker'?'auth-btn-w':'auth-btn-c'}`,onClick:goStep2},(lang==='en'?'Next →':'下一步 →'))
+      e('button',{className:('auth-btn '+(role==='worker'?'auth-btn-w':'auth-btn-c')),onClick:goStep2},(lang==='en'?'Next →':'下一步 →'))
     ),
 
     step===2 && e('div',{className:'auth-card'},
@@ -2041,14 +2042,14 @@ function RegisterScreen({initRole, onBack, onDone, onSwitchLang}) {
         role==='company' && e('input',{className:'auth-input',placeholder:'ABN / 营业执照号（选填）',value:form.abn,onChange:ev=>setF('abn',ev.target.value)}),
         e('input',{className:'auth-input',placeholder:'设置密码（至少6位）*',type:'password',value:form.password,onChange:ev=>setF('password',ev.target.value)}),
         e('input',{className:'auth-input',placeholder:'确认密码 *',type:'password',value:form.confirm,onChange:ev=>setF('confirm',ev.target.value)}),
-        e('button',{className:`auth-btn ${role==='worker'?'auth-btn-w':'auth-btn-c'}`,onClick:submit},'完成注册')
+        e('button',{className:('auth-btn '+(role==='worker'?'auth-btn-w':'auth-btn-c')),onClick:submit},'完成注册')
       )
     ),
 
     step===3 && e('div',{className:'auth-card',style:{textAlign:'center'}},
       e('div',{style:{fontSize:48,marginBottom:12}},'🎉'),
       e('div',{className:'auth-title',style:{textAlign:'center',marginBottom:6}},'注册成功！'),
-      e('div',{className:'auth-desc',style:{textAlign:'center'}},`欢迎加入工匠通，正在进入${role==='worker'?'工人':'公司'}端…`)
+      e('div',{className:'auth-desc',style:{textAlign:'center'}},t('welcome_back')+(role==='worker'?(lang==='en'?'Worker':'工人'):(lang==='en'?'Company':'公司'))+(lang==='en'?'...':'端…'))
     )
   );
 }
@@ -2800,7 +2801,7 @@ function App() {
           marginRight:6,flexShrink:0
         }},lang==='zh'?'EN':'中文'),
         e('div',{style:{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:1}},
-          e('div',{className:`role-pill ${isWorker?'rp-w':'rp-c'}`,style:{cursor:'default'}},
+          e('div',{className:('role-pill '+(isWorker?'rp-w':'rp-c')),style:{cursor:'default'}},
             isWorker?(lang==='en'?'👷 Worker':'👷 工人'):(lang==='en'?'🏢 Company':'🏢 公司')),
           e('div',{style:{fontSize:9,color:'var(--sub)',maxWidth:80,textAlign:'right',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},
             authUser.name)
@@ -2812,7 +2813,7 @@ function App() {
     pages[validTab],
     e('div', {className:'bottom-nav'},
       ...TABS.map(tab =>
-        e('button', {key:tab.key, className:`nb ${validTab===tab.key?'on':''}`, onClick:()=>setTab(tab.key)},
+        e('button', {key:tab.key, className:('nb '+(validTab===tab.key?'on':'')), onClick:()=>setTab(tab.key)},
           e('span', {className:'nb-icon'}, tab.icon),
           e('span', {className:'nb-label'}, tab.label)
         )
