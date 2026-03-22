@@ -1767,6 +1767,7 @@ function App() {
     logout();
     setAuthUser(null);
     setAuthScreen('welcome');
+    setTab('match');
   };
 
   // Save profile changes back to user record
@@ -1783,21 +1784,21 @@ function App() {
   if(!authUser) {
     if(authScreen==='welcome') return e('div',null,
       e('style',null,AUTH_CSS),
-      WelcomeScreen({
+      e(WelcomeScreen,{
         onLogin:()=>setAuthScreen('login'),
         onRegister:(r)=>{setInitRole(r);setAuthScreen('register');}
       })
     );
     if(authScreen==='login') return e('div',null,
       e('style',null,AUTH_CSS),
-      LoginScreen({
+      e(LoginScreen,{
         onBack:()=>setAuthScreen('welcome'),
         onDone:handleAuthDone
       })
     );
     if(authScreen==='register') return e('div',null,
       e('style',null,AUTH_CSS),
-      RegisterScreen({
+      e(RegisterScreen,{
         initRole,
         onBack:()=>setAuthScreen('welcome'),
         onDone:handleAuthDone
@@ -1812,6 +1813,12 @@ function App() {
 
   // Ensure tab is valid for current role
   const validTab = TABS.find(t=>t.key===tab) ? tab : TABS[0].key;
+
+  // Safety: if authUser somehow null here, return welcome
+  if(!authUser) return e('div',null,e('style',null,AUTH_CSS),e(WelcomeScreen,{
+    onLogin:()=>setAuthScreen('login'),
+    onRegister:(r)=>{setInitRole(r);setAuthScreen('register');}
+  }));
 
   const pages = {
     match:   e(MatchPage,   {profile:workerProfile, onGoProfile:()=>setTab('profile')}),
