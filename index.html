@@ -22,6 +22,9 @@ html,body{height:100%;background:#1a1714;overscroll-behavior:none;-webkit-tap-hi
 .sp-dot:nth-child(2){animation-delay:.2s}.sp-dot:nth-child(3){animation-delay:.4s}
 @keyframes bk{0%,80%,100%{background:rgba(255,255,255,0.15)}40%{background:#d4420a}}
 </style>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<script>if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");</script>
 </head>
 <body>
 <div id="splash">
@@ -1208,7 +1211,8 @@ function RatingPage({role}) {
 /* ════════════════════════════
    5. PROFILE PAGE
 ════════════════════════════ */
-function ProfilePage({profile, setProfile, companyProfile, setCompanyProfile, role, setRole}) {
+function ProfilePage(props) {
+  const {profile, setProfile, companyProfile, setCompanyProfile, role, setRole} = props;
   const [tab, setTab] = useState(role==='company'?'company':'worker');
   const [saved, setSaved] = useState(false);
   const [wp, setWp] = useState(profile);
@@ -1326,24 +1330,281 @@ function ProfilePage({profile, setProfile, companyProfile, setCompanyProfile, ro
         ),
 
     e('button',{className:`save-btn ${saved?'saved':''}`,onClick:save},
-      saved?'✅ 已保存，匹配数据已更新！':'保存资料并更新智能匹配')
+      saved?'✅ 已保存，匹配数据已更新！':'保存资料并更新智能匹配'),
+    e('button',{
+      onClick:()=>{ if(typeof props.onLogout==='function') props.onLogout(); },
+      style:{margin:'0 16px 24px',width:'calc(100% - 32px)',padding:'12px',borderRadius:10,border:'1px solid var(--bd)',background:'var(--s3)',color:'var(--sub)',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"}
+    },'退出登录')
+  );
+}
+
+/* ════════════════════════════
+   AUTH SYSTEM
+════════════════════════════ */
+const AUTH_CSS = `
+.auth-wrap{position:fixed;inset:0;background:#1a1714;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;animation:fadeIn 0.3s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.auth-logo{font-size:52px;font-weight:900;color:#fff;letter-spacing:-2px;margin-bottom:6px;text-align:center}
+.auth-logo b{color:#d4420a}
+.auth-sub{font-size:12px;color:rgba(255,255,255,0.4);letter-spacing:2px;margin-bottom:36px;text-align:center}
+.auth-card{background:#fff;border-radius:16px;padding:22px 20px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.4)}
+.auth-title{font-size:17px;font-weight:900;color:var(--tx);margin-bottom:4px}
+.auth-desc{font-size:11px;color:var(--sub);margin-bottom:18px;line-height:1.5}
+/* Role select */
+.role-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.role-card{padding:14px 10px;border-radius:10px;border:2px solid var(--bd);background:var(--s2);cursor:pointer;text-align:center;transition:all 0.2s}
+.role-card.sel-w{border-color:var(--r);background:#fff3ee}
+.role-card.sel-c{border-color:var(--b);background:#e8f0ff}
+.role-card-icon{font-size:26px;margin-bottom:6px}
+.role-card-name{font-size:13px;font-weight:700;color:var(--tx)}
+.role-card-desc{font-size:10px;color:var(--sub);margin-top:2px;line-height:1.3}
+/* Form */
+.auth-form{display:flex;flex-direction:column;gap:10px}
+.auth-input{padding:11px 13px;background:var(--s2);border:1px solid var(--bd);border-radius:8px;font-size:13px;color:var(--tx);outline:none;width:100%;transition:border-color 0.2s;font-family:'Noto Sans SC',sans-serif}
+.auth-input:focus{border-color:var(--b)}
+.auth-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.auth-btn{width:100%;padding:13px;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.5px;margin-top:4px;font-family:'Noto Sans SC',sans-serif}
+.auth-btn-w{background:var(--r);color:#fff}
+.auth-btn-c{background:var(--b);color:#fff}
+.auth-btn-gray{background:var(--s3);color:var(--sub)}
+.auth-divider{display:flex;align-items:center;gap:8px;margin:12px 0}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--bd)}
+.auth-divider span{font-size:11px;color:var(--sub)}
+.auth-link{text-align:center;font-size:12px;color:var(--sub);margin-top:8px}
+.auth-link b{color:var(--b);cursor:pointer;font-weight:700}
+.auth-link b.r{color:var(--r)}
+.auth-err{background:#fff0ec;border:1px solid rgba(212,66,10,0.2);border-radius:7px;padding:8px 11px;font-size:11px;color:var(--r);margin-bottom:4px}
+.auth-ok{background:#e8f5ee;border:1px solid rgba(26,107,60,0.2);border-radius:7px;padding:8px 11px;font-size:11px;color:var(--g);margin-bottom:4px}
+.auth-back{display:flex;align-items:center;gap:5px;background:none;border:none;color:rgba(255,255,255,0.5);font-size:12px;cursor:pointer;margin-bottom:16px;font-family:'Noto Sans SC',sans-serif}
+.auth-step-dots{display:flex;gap:5px;justify-content:center;margin-bottom:16px}
+.auth-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.2)}
+.auth-dot.on{background:#d4420a;width:18px;border-radius:3px}
+`;
+
+// MOCK user database (in-memory)
+const USERS_DB_KEY = '__gj_users__';
+function getUsers() {
+  try { return JSON.parse(localStorage.getItem(USERS_DB_KEY)||'[]'); } catch(e){ return []; }
+}
+function saveUsers(u) {
+  try { localStorage.setItem(USERS_DB_KEY, JSON.stringify(u)); } catch(e){}
+}
+function getCurrentUser() {
+  try { return JSON.parse(localStorage.getItem('__gj_current__')||'null'); } catch(e){ return null; }
+}
+function setCurrentUser(u) {
+  try { localStorage.setItem('__gj_current__', JSON.stringify(u)); } catch(e){}
+}
+function logout() {
+  try { localStorage.removeItem('__gj_current__'); } catch(e){}
+}
+
+/* ── WELCOME SCREEN ── */
+function WelcomeScreen({onLogin, onRegister}) {
+  return e('div',{className:'auth-wrap'},
+    e('div',{className:'auth-logo'},'工',e('b',null,'匠'),'通'),
+    e('div',{className:'auth-sub'},'建筑工人智慧用工平台'),
+    e('div',{className:'auth-card'},
+      e('div',{className:'auth-title'},'欢迎使用工匠通'),
+      e('div',{className:'auth-desc'},'连接建筑工人与优质雇主，让用工更简单、更透明'),
+      e('div',{className:'role-cards'},
+        e('div',{className:'role-card',onClick:()=>onRegister('worker')},
+          e('div',{className:'role-card-icon'},'👷'),
+          e('div',{className:'role-card-name'},'我是工人'),
+          e('div',{className:'role-card-desc'},'找工作·打卡·日志')
+        ),
+        e('div',{className:'role-card',onClick:()=>onRegister('company')},
+          e('div',{className:'role-card-icon'},'🏢'),
+          e('div',{className:'role-card-name'},'我是公司'),
+          e('div',{className:'role-card-desc'},'发布职位·管理工人')
+        )
+      ),
+      e('div',{className:'auth-divider'},e('span',null,'已有账号')),
+      e('button',{className:'auth-btn auth-btn-gray',onClick:onLogin},'登录账号')
+    )
+  );
+}
+
+/* ── REGISTER SCREEN ── */
+function RegisterScreen({initRole, onBack, onDone}) {
+  const [step, setStep] = useState(1); // 1=role, 2=info, 3=done
+  const [role, setRole] = useState(initRole||'worker');
+  const [form, setForm] = useState({name:'',phone:'',email:'',password:'',confirm:'',
+    companyName:'',abn:''});
+  const [err, setErr] = useState('');
+
+  const setF = (k,v) => setForm(p=>({...p,[k]:v}));
+
+  const goStep2 = () => { setErr(''); setStep(2); };
+
+  const submit = () => {
+    setErr('');
+    if(role==='worker'){
+      if(!form.name.trim()) return setErr('请填写姓名');
+      if(!form.phone.trim()) return setErr('请填写手机号');
+      if(!form.password || form.password.length < 6) return setErr('密码至少6位');
+      if(form.password !== form.confirm) return setErr('两次密码不一致');
+    } else {
+      if(!form.companyName.trim()) return setErr('请填写公司名称');
+      if(!form.phone.trim()) return setErr('请填写联系电话');
+      if(!form.password || form.password.length < 6) return setErr('密码至少6位');
+      if(form.password !== form.confirm) return setErr('两次密码不一致');
+    }
+    const users = getUsers();
+    if(users.find(u=>u.phone===form.phone)) return setErr('该手机号已注册');
+    const newUser = {
+      id: Date.now(),
+      role,
+      phone: form.phone,
+      password: form.password,
+      name: role==='worker' ? form.name : form.companyName,
+      email: form.email,
+      abn: form.abn,
+      createdAt: new Date().toISOString(),
+      profile: role==='worker' ? {...DEFAULT_WORKER, name:form.name, phone:form.phone, email:form.email}
+                                : {...DEFAULT_COMPANY, name:form.companyName, phone:form.phone},
+    };
+    users.push(newUser);
+    saveUsers(users);
+    setCurrentUser(newUser);
+    setStep(3);
+    setTimeout(()=>onDone(newUser), 1500);
+  };
+
+  const dots = [1,2,3].map((n,i)=>e('div',{key:n,className:`auth-dot ${step===n?'on':''}`}));
+
+  return e('div',{className:'auth-wrap'},
+    e('button',{className:'auth-back',onClick:step===1?onBack:()=>setStep(step-1)},
+      '← '+(step===1?'返回':'上一步')),
+    e('div',{className:'auth-step-dots'},...dots),
+
+    step===1 && e('div',{className:'auth-card'},
+      e('div',{className:'auth-title'},'选择注册身份'),
+      e('div',{className:'auth-desc'},'请选择您的身份类型，注册后可在相应端使用全部功能'),
+      e('div',{className:'role-cards'},
+        e('div',{className:`role-card ${role==='worker'?'sel-w':''}`,onClick:()=>setRole('worker')},
+          e('div',{className:'role-card-icon'},'👷'),
+          e('div',{className:'role-card-name'},'工人注册'),
+          e('div',{className:'role-card-desc'},'找工作·打卡·日志·信誉')
+        ),
+        e('div',{className:`role-card ${role==='company'?'sel-c':''}`,onClick:()=>setRole('company')},
+          e('div',{className:'role-card-icon'},'🏢'),
+          e('div',{className:'role-card-name'},'公司注册'),
+          e('div',{className:'role-card-desc'},'招工·管理·任务·审查')
+        )
+      ),
+      e('button',{className:`auth-btn ${role==='worker'?'auth-btn-w':'auth-btn-c'}`,onClick:goStep2},'下一步 →')
+    ),
+
+    step===2 && e('div',{className:'auth-card'},
+      e('div',{className:'auth-title'},role==='worker'?'👷 工人注册':'🏢 公司注册'),
+      e('div',{className:'auth-desc'},role==='worker'?'填写个人信息完成注册':'填写公司信息完成注册'),
+      err && e('div',{className:'auth-err'},err),
+      e('div',{className:'auth-form'},
+        role==='worker'
+          ? e('input',{className:'auth-input',placeholder:'真实姓名 *',value:form.name,onChange:ev=>setF('name',ev.target.value)})
+          : e('input',{className:'auth-input',placeholder:'公司名称 *',value:form.companyName,onChange:ev=>setF('companyName',ev.target.value)}),
+        e('input',{className:'auth-input',placeholder:'手机号 *',type:'tel',value:form.phone,onChange:ev=>setF('phone',ev.target.value)}),
+        e('input',{className:'auth-input',placeholder:'邮箱（选填）',type:'email',value:form.email,onChange:ev=>setF('email',ev.target.value)}),
+        role==='company' && e('input',{className:'auth-input',placeholder:'ABN / 营业执照号（选填）',value:form.abn,onChange:ev=>setF('abn',ev.target.value)}),
+        e('input',{className:'auth-input',placeholder:'设置密码（至少6位）*',type:'password',value:form.password,onChange:ev=>setF('password',ev.target.value)}),
+        e('input',{className:'auth-input',placeholder:'确认密码 *',type:'password',value:form.confirm,onChange:ev=>setF('confirm',ev.target.value)}),
+        e('button',{className:`auth-btn ${role==='worker'?'auth-btn-w':'auth-btn-c'}`,onClick:submit},'完成注册')
+      )
+    ),
+
+    step===3 && e('div',{className:'auth-card',style:{textAlign:'center'}},
+      e('div',{style:{fontSize:48,marginBottom:12}},'🎉'),
+      e('div',{className:'auth-title',style:{textAlign:'center',marginBottom:6}},'注册成功！'),
+      e('div',{className:'auth-desc',style:{textAlign:'center'}},`欢迎加入工匠通，正在进入${role==='worker'?'工人':'公司'}端…`)
+    )
+  );
+}
+
+/* ── LOGIN SCREEN ── */
+function LoginScreen({onBack, onDone}) {
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [err, setErr] = useState('');
+
+  const submit = () => {
+    setErr('');
+    if(!phone.trim()) return setErr('请填写手机号');
+    if(!password) return setErr('请填写密码');
+    const users = getUsers();
+    const user = users.find(u=>u.phone===phone && u.password===password);
+    if(!user) return setErr('手机号或密码错误');
+    setCurrentUser(user);
+    onDone(user);
+  };
+
+  // Demo login shortcut
+  const demoLogin = (role) => {
+    const users = getUsers();
+    let demo = users.find(u=>u.phone===(role==='worker'?'demo_worker':'demo_company'));
+    if(!demo){
+      demo = {
+        id: role==='worker'?-1:-2,
+        role,
+        phone: role==='worker'?'demo_worker':'demo_company',
+        password:'demo',
+        name: role==='worker'?'张建国':'Pacific Build Group',
+        profile: role==='worker'?{...DEFAULT_WORKER}:{...DEFAULT_COMPANY},
+      };
+      users.push(demo);
+      saveUsers(users);
+    }
+    setCurrentUser(demo);
+    onDone(demo);
+  };
+
+  return e('div',{className:'auth-wrap'},
+    e('button',{className:'auth-back',onClick:onBack},'← 返回'),
+    e('div',{className:'auth-logo',style:{fontSize:36,marginBottom:4}},'工',e('b',null,'匠'),'通'),
+    e('div',{className:'auth-sub',style:{marginBottom:24}},'登录账号'),
+    e('div',{className:'auth-card'},
+      e('div',{className:'auth-title'},'账号登录'),
+      e('div',{className:'auth-desc'},'使用注册时的手机号和密码登录'),
+      err && e('div',{className:'auth-err'},err),
+      e('div',{className:'auth-form'},
+        e('input',{className:'auth-input',placeholder:'手机号',type:'tel',value:phone,onChange:ev=>setPhone(ev.target.value)}),
+        e('input',{className:'auth-input',placeholder:'密码',type:'password',value:password,onChange:ev=>setPassword(ev.target.value)}),
+        e('button',{className:'auth-btn auth-btn-c',onClick:submit},'登录')
+      ),
+      e('div',{className:'auth-divider'},e('span',null,'快速体验')),
+      e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}},
+        e('button',{className:'auth-btn',style:{background:'#fff3ee',color:'var(--r)',fontSize:12},onClick:()=>demoLogin('worker')},'👷 工人演示'),
+        e('button',{className:'auth-btn',style:{background:'#e8f0ff',color:'var(--b)',fontSize:12},onClick:()=>demoLogin('company')},'🏢 公司演示')
+      )
+    )
   );
 }
 
 /* ════════════════════════════
    APP ROOT
 ════════════════════════════ */
-const TABS = [
+const TABS_WORKER = [
   {key:'match',icon:'🎯',label:'找工作'},
   {key:'checkin',icon:'📍',label:'签到'},
   {key:'diary',icon:'📝',label:'日志'},
   {key:'rating',icon:'⭐',label:'信誉'},
   {key:'profile',icon:'👤',label:'我的'},
 ];
+const TABS_COMPANY = [
+  {key:'checkin',icon:'📍',label:'工人位置'},
+  {key:'diary',icon:'📝',label:'任务日志'},
+  {key:'rating',icon:'⭐',label:'信誉'},
+  {key:'profile',icon:'👤',label:'公司资料'},
+];
 
 function App() {
+  // Auth state
+  const [authUser, setAuthUser] = useState(()=>getCurrentUser());
+  const [authScreen, setAuthScreen] = useState('welcome'); // welcome|login|register
+  const [initRole, setInitRole] = useState(null);
+
+  // App state
   const [tab, setTab] = useState('match');
-  const [role, setRole] = useState('worker');
   const [workerProfile, setWorkerProfile] = useState(DEFAULT_WORKER);
   const [companyProfile, setCompanyProfile] = useState(DEFAULT_COMPANY);
 
@@ -1355,33 +1616,109 @@ function App() {
     }
   }, []);
 
+  // Sync profile from auth user
+  useEffect(()=>{
+    if(authUser){
+      if(authUser.role==='worker' && authUser.profile) setWorkerProfile(authUser.profile);
+      if(authUser.role==='company' && authUser.profile) setCompanyProfile(authUser.profile);
+      // Set default tab based on role
+      setTab(authUser.role==='company' ? 'checkin' : 'match');
+    }
+  },[authUser]);
+
+  const handleAuthDone = (user) => {
+    setAuthUser(user);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setAuthUser(null);
+    setAuthScreen('welcome');
+  };
+
+  // Save profile changes back to user record
+  const handleSetWorkerProfile = (p) => {
+    setWorkerProfile(p);
+    if(authUser){ const u={...authUser,profile:p}; setCurrentUser(u); setAuthUser(u); }
+  };
+  const handleSetCompanyProfile = (p) => {
+    setCompanyProfile(p);
+    if(authUser){ const u={...authUser,profile:p}; setCurrentUser(u); setAuthUser(u); }
+  };
+
+  // ── AUTH SCREENS ──
+  if(!authUser) {
+    if(authScreen==='welcome') return e('div',null,
+      e('style',null,AUTH_CSS),
+      WelcomeScreen({
+        onLogin:()=>setAuthScreen('login'),
+        onRegister:(r)=>{setInitRole(r);setAuthScreen('register');}
+      })
+    );
+    if(authScreen==='login') return e('div',null,
+      e('style',null,AUTH_CSS),
+      LoginScreen({
+        onBack:()=>setAuthScreen('welcome'),
+        onDone:handleAuthDone
+      })
+    );
+    if(authScreen==='register') return e('div',null,
+      e('style',null,AUTH_CSS),
+      RegisterScreen({
+        initRole,
+        onBack:()=>setAuthScreen('welcome'),
+        onDone:handleAuthDone
+      })
+    );
+  }
+
+  // ── MAIN APP ──
+  const role = authUser.role;
+  const isWorker = role === 'worker';
+  const TABS = isWorker ? TABS_WORKER : TABS_COMPANY;
+
+  // Ensure tab is valid for current role
+  const validTab = TABS.find(t=>t.key===tab) ? tab : TABS[0].key;
+
   const pages = {
     match:   e(MatchPage,   {profile:workerProfile, onGoProfile:()=>setTab('profile')}),
     checkin: e(CheckinPage, {role}),
     diary:   e(DiaryPage,   {role}),
     rating:  e(RatingPage,  {role}),
-    profile: e(ProfilePage, {profile:workerProfile, setProfile:setWorkerProfile, companyProfile, setCompanyProfile, role, setRole}),
+    profile: e(ProfilePage, {
+      profile:workerProfile, setProfile:handleSetWorkerProfile,
+      companyProfile, setCompanyProfile:handleSetCompanyProfile,
+      role, setRole:()=>{},
+      onLogout:handleLogout,
+      authUser,
+    }),
   };
 
-  const avatarName = role==='worker'?(workerProfile.name||'我')[0]:(companyProfile.name||'公')[0];
+  const avatarName = (authUser.name||'我')[0];
 
   return e('div', {className:'app'},
     e('style', null, CSS),
+    e('style', null, AUTH_CSS),
     e('div', {className:'topbar'},
       e('div', null,
         e('div', {className:'logo'}, '工', e('span',{className:'logo-r'},'匠'), '通'),
-        e('div', {className:'logo-sub'}, '建筑工人智慧用工平台')
+        e('div', {className:'logo-sub'}, isWorker?'工人端 — 找工作·签到·日志':'公司端 — 管理·任务·招工')
       ),
       e('div', {className:'topbar-right'},
-        e('button', {className:`role-pill ${role==='worker'?'rp-w':'rp-c'}`, onClick:()=>setRole(r=>r==='worker'?'company':'worker')},
-          role==='worker'?'👷 工人端':'🏢 公司端'),
-        e('div', {className:'avatar', style:{background:role==='worker'?'#d4420a':'#1a4a8c'}}, avatarName)
+        e('div',{style:{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:1}},
+          e('div',{className:`role-pill ${isWorker?'rp-w':'rp-c'}`,style:{cursor:'default'}},
+            isWorker?'👷 工人':'🏢 公司'),
+          e('div',{style:{fontSize:9,color:'var(--sub)',maxWidth:80,textAlign:'right',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},
+            authUser.name)
+        ),
+        e('div',{className:'avatar',style:{background:isWorker?'#d4420a':'#1a4a8c',cursor:'pointer'},
+          onClick:()=>setTab('profile')},avatarName)
       )
     ),
-    pages[tab],
+    pages[validTab],
     e('div', {className:'bottom-nav'},
       ...TABS.map(t =>
-        e('button', {key:t.key, className:`nb ${tab===t.key?'on':''}`, onClick:()=>setTab(t.key)},
+        e('button', {key:t.key, className:`nb ${validTab===t.key?'on':''}`, onClick:()=>setTab(t.key)},
           e('span', {className:'nb-icon'}, t.icon),
           t.label
         )
