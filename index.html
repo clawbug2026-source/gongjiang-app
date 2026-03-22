@@ -478,7 +478,7 @@ button{cursor:pointer}
 .bottom-nav{position:sticky;bottom:0;background:var(--sur);border-top:1px solid var(--bd);display:grid;grid-template-columns:repeat(5,1fr);z-index:50}
 .nb{display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 4px 8px;background:none;border:none;color:var(--sub);font-size:9px;transition:color 0.2s}
 .nb.on{color:var(--r)}
-.nb-icon{font-size:19px;line-height:1}
+.nb-icon{font-size:19px;line-height:1}.nb-label{font-size:9px;margin-top:1px;color:inherit;line-height:1}
 .page{flex:1;overflow-y:auto;padding-bottom:4px}
 .card{background:var(--sur);border-radius:12px;border:1px solid var(--bd);overflow:hidden;box-shadow:var(--sh)}
 /* HERO */
@@ -2814,7 +2814,7 @@ function App() {
       ...TABS.map(tab =>
         e('button', {key:tab.key, className:`nb ${validTab===tab.key?'on':''}`, onClick:()=>setTab(tab.key)},
           e('span', {className:'nb-icon'}, tab.icon),
-          t.label
+          e('span', {className:'nb-label'}, tab.label)
         )
       )
     )
