@@ -1189,7 +1189,10 @@ function CompanyDiary() {
       showForm
         ? e('div',{className:'atf'},
             e('div',{className:'atf-title'},editId?'✏️ 编辑任务':'➕ 新建任务'),
-            e('input',{className:'atf-in',placeholder:'任务名称',value:form.name,onChange:ev=>setForm(p=>({...p,name:ev.target.value}))}),
+            e('select',{className:'atf-sel',style:{marginBottom:6},value:form.name,onChange:ev=>setForm(p=>({...p,name:ev.target.value}))},
+              e('option',{value:''},'选择工作类型'),
+              ...['做墙铁','做顶铁','Tbar','做木板','做外墙铁','做外墙板','打胶','铺棉','钉板','抹灰','蹭灰','杂工','管工'].map(o=>e('option',{key:o},o))
+            ),
             e('div',{className:'atf-row'},
               e('select',{className:'atf-sel',value:form.zone,onChange:ev=>setForm(p=>({...p,zone:ev.target.value}))},
                 ...ZONES.map(o=>e('option',{key:o},o))),
@@ -1279,7 +1282,7 @@ function CompanyDiary() {
    4. RATING PAGE
 ════════════════════════════ */
 function RatingPage({role}) {
-  const [tab, setTab] = useState('companies');
+  const tab = role==='worker' ? 'companies' : 'workers';
   const [ratingTarget, setRatingTarget] = useState(null);
   const [editingW, setEditingW] = useState(null);
   const [workerRatings, setWorkerRatings] = useState({});
@@ -1447,7 +1450,7 @@ function RatingPage({role}) {
 ════════════════════════════ */
 function ProfilePage(props) {
   const {profile, setProfile, companyProfile, setCompanyProfile, role, setRole} = props;
-  const [tab, setTab] = useState(role==='company'?'company':'worker');
+
   const [saved, setSaved] = useState(false);
   const [wp, setWp] = useState(profile);
   const [cp, setCp] = useState(companyProfile);
@@ -1455,7 +1458,7 @@ function ProfilePage(props) {
   const simulateUpload = key => { setUploads(p=>({...p,[key]:'loading'})); setTimeout(()=>setUploads(p=>({...p,[key]:'done'})),800); };
   const toggleWp = (field, val) => setWp(p=>({...p,[field]:(p[field]||[]).includes(val)?(p[field]||[]).filter(x=>x!==val):[...(p[field]||[]),val]}));
   const toggleCp = (field, val) => setCp(p=>({...p,[field]:(p[field]||[]).includes(val)?(p[field]||[]).filter(x=>x!==val):[...(p[field]||[]),val]}));
-  const save = () => { if(tab==='worker')setProfile(wp); else setCompanyProfile(cp); setSaved(true); setTimeout(()=>setSaved(false),2500); };
+  const save = () => { if(role==='worker')setProfile(wp); else setCompanyProfile(cp); setSaved(true); setTimeout(()=>setSaved(false),2500); };
 
   const Chips = ({options, field, obj, onToggle, mode='b'}) =>
     e('div',{className:'chips'},
@@ -1470,8 +1473,8 @@ function ProfilePage(props) {
           e('div',null,e('b',{style:{display:'block',fontSize:12,marginBottom:2}},uploads[fieldKey]==='loading'?'上传中…':'点击上传文件'),e('span',{style:{fontSize:11,color:'var(--sub)'}},'支持 JPG, PNG, PDF（最大10MB）'))
         );
 
-  const curName = tab==='worker'?(wp.name||'我'):(cp.name||'公司');
-  const curMeta = tab==='worker'
+  const curName = role==='worker'?(wp.name||'我'):(cp.name||'公司');
+  const curMeta = role==='worker'
     ?`${(wp.types||[]).join('·')||'未填工种'} · ${wp.experience||'?'}年 · ${wp.currentCity||'未填'}`
     :`${(cp.types||[]).join('·')||'未填工程'} · ${(cp.cities||[]).join('、')||'未填城市'}`;
 
@@ -1482,19 +1485,16 @@ function ProfilePage(props) {
       e('div',{className:'ph-name'},curName),
       e('div',{className:'ph-meta'},curMeta),
       e('div',{className:'ph-stats'},
-        ...(tab==='worker'
+        ...(role==='worker'
           ?[['4.8','信誉分'],['98%','出勤率'],['312','工时'],['26','日志']]
           :[[cp.headcount||'—','规模'],['4.8','信誉分'],['3','在建项目'],['98%','准时率']]
         ).map(([n,l])=>e('div',{key:l,className:'ph-st'},e('div',{className:'ph-sn'},n),e('div',{className:'ph-sl'},l)))
       )
     ),
 
-    e('div',{className:'sw'},
-      e('button',{className:`sw-btn ${tab==='worker'?'on':''}`,onClick:()=>{setTab('worker');setRole('worker');}},'👷 工人资料'),
-      e('button',{className:`sw-btn ${tab==='company'?'on':''}`,onClick:()=>{setTab('company');setRole('company');}},'🏢 公司资料')
-    ),
 
-    tab==='worker'
+
+    role==='worker'
       ? e('div',{className:'form-sec'},
           e('div',{className:'hint-b'},'💡 标 * 字段为匹配关键项，资料越完整推荐越精准！'),
 
