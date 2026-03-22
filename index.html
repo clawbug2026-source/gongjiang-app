@@ -1779,6 +1779,233 @@ function LoginScreen({onBack, onDone}) {
 }
 
 /* ════════════════════════════
+   WORKER MANAGEMENT PAGE
+════════════════════════════ */
+
+/* Init worker roster in _MEM */
+if(!_MEM.roster){
+  _MEM.roster = [
+    {id:1,name:'张建国',phone:'0412-111-222',email:'zhang@email.com',type:'电工',status:'active',
+     pay:45,payUnit:'时',joined:'2024-01-15',abn:'12 345 678 901',address:'悉尼 NSW 2000',
+     emergency:'张太太 0411-999-888',notes:'持白卡、电工证',gender:'男',age:38},
+    {id:2,name:'刘大明',phone:'0412-333-444',email:'liu@email.com',type:'钢筋工',status:'active',
+     pay:42,payUnit:'时',joined:'2024-02-01',abn:'98 765 432 109',address:'墨尔本 VIC 3000',
+     emergency:'刘父 0422-777-666',notes:'有驾照',gender:'男',age:35},
+    {id:3,name:'王建华',phone:'0412-555-666',email:'wang@email.com',type:'水泥工',status:'inactive',
+     pay:40,payUnit:'时',joined:'2023-11-01',abn:'',address:'布里斯班 QLD 4000',
+     emergency:'',notes:'',gender:'男',age:42},
+  ];
+}
+try{var _wr=localStorage.getItem('__gj_roster__');if(_wr)_MEM.roster=JSON.parse(_wr);}catch(e){}
+function _saveRoster(){try{localStorage.setItem('__gj_roster__',JSON.stringify(_MEM.roster));}catch(e){}}
+
+function WorkerMgmtPage() {
+  const STATUS_OPTS = [
+    {key:'active',   label:'在职', bg:'#e8f5ee', color:'var(--g)'},
+    {key:'probation',label:'入职', bg:'#e8f0ff', color:'var(--b)'},
+    {key:'inactive', label:'停职', bg:'#fff0ec', color:'var(--r)'},
+  ];
+  const TYPE_OPTS = ['做墙铁','做顶铁','Tbar','做木板','做外墙铁','做外墙板','打胶','铺棉','钉板','抹灰','蹭灰','杂工','管工','电工','水泥工','钢筋工','木工','管工'];
+
+  const [roster, setRoster] = useState(()=>_MEM.roster||[]);
+  const [view, setView]     = useState('list'); // list | detail | add | edit
+  const [selW, setSelW]     = useState(null);
+  const [form, setForm]     = useState({});
+  const [filter, setFilter] = useState('all'); // all | active | probation | inactive
+
+  const saveRoster = (r) => { _MEM.roster=r; _saveRoster(); setRoster(r); };
+  const setF = (k,v) => setForm(p=>({...p,[k]:v}));
+
+  const WCSS = `
+.wm-bar{display:flex;gap:6px;padding:12px 16px 0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.wm-filter{padding:5px 14px;border-radius:18px;font-size:12px;font-weight:700;border:none;cursor:pointer;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;flex-shrink:0}
+.wm-list{padding:0 16px 20px}
+.wm-add-btn{width:100%;padding:12px;border-radius:10px;border:2px dashed var(--bd2);background:var(--s2);color:var(--b);font-size:13px;font-weight:700;cursor:pointer;margin:10px 0 0;font-family:'Noto Sans SC',sans-serif}
+.wm-card{background:var(--sur);border-radius:12px;border:1px solid var(--bd);margin-top:10px;overflow:hidden;box-shadow:var(--sh)}
+.wm-card-hd{display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer}
+.wm-av{width:42px;height:42px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;flex-shrink:0}
+.wm-info{flex:1}
+.wm-name{font-size:14px;font-weight:900}
+.wm-sub{font-size:11px;color:var(--sub);margin-top:2px}
+.wm-badge{font-size:10px;padding:3px 9px;border-radius:12px;font-weight:700;flex-shrink:0}
+.wm-foot{display:flex;padding:9px 14px;border-top:1px solid var(--bd);background:var(--s2);gap:8px}
+.wm-foot-item{flex:1;text-align:center}
+.wm-foot-val{font-size:13px;font-weight:700;font-family:'DM Mono',monospace;color:var(--b)}
+.wm-foot-lbl{font-size:9px;color:var(--sub);margin-top:1px}
+.wd-hd{background:linear-gradient(135deg,#1a1714,#2a1e18);color:#fff;padding:14px 16px}
+.wd-back{background:rgba(255,255,255,0.12);border:none;color:#fff;padding:5px 11px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;margin-bottom:10px;font-family:'Noto Sans SC',sans-serif}
+.wd-av{width:64px;height:64px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:28px;margin-bottom:8px}
+.wd-name{font-size:20px;font-weight:900}
+.wd-meta{font-size:12px;color:rgba(255,255,255,0.55);margin-top:3px}
+.wd-status-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.wd-status-btn{padding:6px 14px;border-radius:18px;font-size:12px;font-weight:700;border:none;cursor:pointer;font-family:'Noto Sans SC',sans-serif}
+.wd-section{padding:12px 16px 0}
+.wd-sec-title{font-size:11px;font-weight:700;color:var(--sub);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.wd-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--bd)}
+.wd-row:last-child{border-bottom:none}
+.wd-lbl{font-size:12px;color:var(--sub)}
+.wd-val{font-size:12px;font-weight:700;color:var(--tx);text-align:right}
+.wf-in{width:100%;padding:9px 11px;background:var(--s2);border:1px solid var(--bd);border-radius:7px;font-size:13px;color:var(--tx);outline:none;margin-bottom:8px;display:block;font-family:'Noto Sans SC',sans-serif}
+.wf-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0}
+.wf-label{font-size:11px;font-weight:700;color:var(--sub);margin:4px 0 5px;display:block}
+.wf-sel{width:100%;padding:9px 11px;background:var(--s2);border:1px solid var(--bd);border-radius:7px;font-size:12px;color:var(--tx);outline:none;font-family:'Noto Sans SC',sans-serif;margin-bottom:8px}
+  `;
+
+  const COLORS = ['#d4420a','#1a6b3c','#1a4a8c','#8b5cf6','#d97706','#0891b2'];
+  const getColor = (id) => COLORS[(id-1)%COLORS.length];
+  const getStatus = (s) => STATUS_OPTS.find(o=>o.key===s)||STATUS_OPTS[0];
+
+  const filtered = filter==='all' ? roster : roster.filter(w=>w.status===filter);
+
+  /* ── List ── */
+  if(view==='list') return e('div',{className:'page'},
+    e('style',null,WCSS),
+    e('div',{className:'wm-bar'},
+      [{key:'all',label:'全部 '+roster.length},...STATUS_OPTS.map(s=>({key:s.key,label:s.label+' '+roster.filter(w=>w.status===s.key).length}))].map(f=>
+        e('button',{key:f.key,className:'wm-filter',onClick:()=>setFilter(f.key),
+          style:{background:filter===f.key?'var(--b)':'var(--s3)',color:filter===f.key?'#fff':'var(--sub)'}},f.label)
+      )
+    ),
+    e('div',{className:'wm-list'},
+      e('button',{className:'wm-add-btn',onClick:()=>{
+        setForm({name:'',phone:'',email:'',type:'做墙铁',status:'probation',pay:'',payUnit:'时',joined:new Date().toISOString().slice(0,10),abn:'',address:'',emergency:'',notes:'',gender:'男',age:''});
+        setView('add');
+      }},'＋ 新增工人'),
+      filtered.length===0&&e('div',{style:{textAlign:'center',padding:'30px 0',color:'var(--sub)',fontSize:13}},'暂无工人'),
+      filtered.map(w=>{
+        const st = getStatus(w.status);
+        return e('div',{key:w.id,className:'wm-card'},
+          e('div',{className:'wm-card-hd',onClick:()=>{setSelW(w);setView('detail');}},
+            e('div',{className:'wm-av',style:{background:getColor(w.id)}},w.name[0]),
+            e('div',{className:'wm-info'},
+              e('div',{className:'wm-name'},w.name),
+              e('div',{className:'wm-sub'},w.type+' · '+(w.phone||'—'))
+            ),
+            e('span',{className:'wm-badge',style:{background:st.bg,color:st.color}},st.label)
+          ),
+          e('div',{className:'wm-foot'},
+            e('div',{className:'wm-foot-item'},e('div',{className:'wm-foot-val'},'A$'+w.pay+'/'+w.payUnit),e('div',{className:'wm-foot-lbl'},'薪资')),
+            e('div',{className:'wm-foot-item'},e('div',{className:'wm-foot-val'},w.joined||'—'),e('div',{className:'wm-foot-lbl'},'入职日期')),
+            e('div',{className:'wm-foot-item'},
+              e('button',{onClick:()=>{setForm({...w});setSelW(w);setView('edit');},
+                style:{background:'#e8f0ff',color:'var(--b)',border:'none',padding:'5px 12px',borderRadius:6,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"}},'✏️ 编辑')
+            )
+          )
+        );
+      })
+    )
+  );
+
+  /* ── Worker Detail ── */
+  if(view==='detail'&&selW) {
+    const w = roster.find(x=>x.id===selW.id)||selW;
+    const st = getStatus(w.status);
+    return e('div',{className:'page'},
+      e('style',null,WCSS),
+      e('div',{className:'wd-hd'},
+        e('button',{className:'wd-back',onClick:()=>setView('list')},'← 返回工人列表'),
+        e('div',{className:'wd-av',style:{background:getColor(w.id)}},w.name[0]),
+        e('div',{className:'wd-name'},w.name),
+        e('div',{className:'wd-meta'},w.type+' · '+(w.gender||'')+(w.age?' · '+w.age+'岁':'')),
+        e('div',{className:'wd-status-row'},
+          STATUS_OPTS.map(s=>e('button',{key:s.key,className:'wd-status-btn',
+            onClick:()=>saveRoster(roster.map(x=>x.id===w.id?{...x,status:s.key}:x)),
+            style:{background:w.status===s.key?s.color:'rgba(255,255,255,0.12)',
+                   color:w.status===s.key?'#fff':'rgba(255,255,255,0.6)',
+                   border:w.status===s.key?'none':'1px solid rgba(255,255,255,0.2)'}},s.label))
+        )
+      ),
+      e('div',{className:'wd-section'},
+        e('div',{className:'wd-sec-title'},'薪资 & 工种'),
+        [['工种',w.type],['时薪','A$ '+w.pay+' / '+w.payUnit],['入职日期',w.joined||'—'],['ABN',w.abn||'—']].map(([l,v])=>
+          e('div',{key:l,className:'wd-row'},e('span',{className:'wd-lbl'},l),e('span',{className:'wd-val'},v))
+        )
+      ),
+      e('div',{className:'wd-section'},
+        e('div',{className:'wd-sec-title'},'联系方式'),
+        [['手机',w.phone||'—'],['邮箱',w.email||'—'],['地址',w.address||'—'],['紧急联系',w.emergency||'—']].map(([l,v])=>
+          e('div',{key:l,className:'wd-row'},e('span',{className:'wd-lbl'},l),e('span',{className:'wd-val'},v))
+        )
+      ),
+      w.notes&&e('div',{className:'wd-section'},
+        e('div',{className:'wd-sec-title'},'备注'),
+        e('div',{style:{fontSize:12,color:'var(--sub)',padding:'8px 0',lineHeight:1.6}},w.notes)
+      ),
+      e('div',{style:{display:'flex',gap:8,padding:'14px 16px'}},
+        e('button',{style:{flex:1,padding:11,borderRadius:9,border:'none',background:'#e8f0ff',color:'var(--b)',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"},
+          onClick:()=>{setForm({...w});setView('edit');}},'✏️ 编辑信息'),
+        e('button',{style:{padding:'11px 14px',borderRadius:9,border:'none',background:'#fff0ec',color:'var(--r)',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"},
+          onClick:()=>{if(confirm('确认删除该工人？')){saveRoster(roster.filter(x=>x.id!==w.id));setView('list');}}},'删除')
+      )
+    );
+  }
+
+  /* ── Add / Edit Form ── */
+  if(view==='add'||view==='edit') {
+    const isEdit = view==='edit';
+    return e('div',{className:'page'},
+      e('style',null,WCSS),
+      e('div',{style:{display:'flex',alignItems:'center',gap:10,padding:'14px 16px 0'}},
+        e('button',{style:{background:'none',border:'none',fontSize:22,cursor:'pointer',color:'var(--sub)'},onClick:()=>setView(isEdit?'detail':'list')},'←'),
+        e('div',{style:{fontSize:16,fontWeight:900}},isEdit?'编辑工人信息':'新增工人')
+      ),
+      e('div',{style:{padding:'0 16px 30px'}},
+        e('span',{className:'wf-label'},'基本信息'),
+        e('div',{className:'wf-row'},
+          e('input',{className:'wf-in',placeholder:'姓名 *',value:form.name||'',onChange:ev=>setF('name',ev.target.value)}),
+          e('select',{className:'wf-sel',value:form.gender||'男',onChange:ev=>setF('gender',ev.target.value)},
+            ['男','女'].map(v=>e('option',{key:v},v)))
+        ),
+        e('div',{className:'wf-row'},
+          e('input',{className:'wf-in',placeholder:'年龄',type:'number',value:form.age||'',onChange:ev=>setF('age',ev.target.value)}),
+          e('input',{className:'wf-in',placeholder:'手机号 *',value:form.phone||'',onChange:ev=>setF('phone',ev.target.value)})
+        ),
+        e('input',{className:'wf-in',placeholder:'邮箱',value:form.email||'',onChange:ev=>setF('email',ev.target.value)}),
+        e('input',{className:'wf-in',placeholder:'住址',value:form.address||'',onChange:ev=>setF('address',ev.target.value)}),
+        e('input',{className:'wf-in',placeholder:'紧急联系人（姓名 / 电话）',value:form.emergency||'',onChange:ev=>setF('emergency',ev.target.value)}),
+
+        e('span',{className:'wf-label'},'工种 & 薪资'),
+        e('select',{className:'wf-sel',value:form.type||'',onChange:ev=>setF('type',ev.target.value)},
+          e('option',{value:''},'选择工种'),
+          TYPE_OPTS.map(o=>e('option',{key:o},o))
+        ),
+        e('div',{className:'wf-row'},
+          e('input',{className:'wf-in',placeholder:'时薪 A$',type:'number',value:form.pay||'',onChange:ev=>setF('pay',parseFloat(ev.target.value)||0)}),
+          e('select',{className:'wf-sel',value:form.payUnit||'时',onChange:ev=>setF('payUnit',ev.target.value)},
+            ['时','天','周'].map(o=>e('option',{key:o},o)))
+        ),
+
+        e('span',{className:'wf-label'},'入职 & 状态'),
+        e('div',{className:'wf-row'},
+          e('input',{className:'wf-in',type:'date',value:form.joined||'',onChange:ev=>setF('joined',ev.target.value)}),
+          e('select',{className:'wf-sel',value:form.status||'probation',onChange:ev=>setF('status',ev.target.value)},
+            STATUS_OPTS.map(s=>e('option',{key:s.key,value:s.key},s.label)))
+        ),
+        e('input',{className:'wf-in',placeholder:'ABN（选填）',value:form.abn||'',onChange:ev=>setF('abn',ev.target.value)}),
+        e('input',{className:'wf-in',placeholder:'备注（证件、技能等）',value:form.notes||'',onChange:ev=>setF('notes',ev.target.value)}),
+
+        e('button',{
+          style:{width:'100%',padding:13,borderRadius:10,border:'none',background:'var(--b)',color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',marginTop:8,fontFamily:"'Noto Sans SC',sans-serif"},
+          onClick:()=>{
+            if(!form.name||!form.phone)return;
+            if(isEdit){
+              saveRoster(roster.map(w=>w.id===(selW&&selW.id)?{...w,...form}:w));
+              setView('detail');
+            } else {
+              const nr = [...roster,{...form,id:Date.now()}];
+              saveRoster(nr);
+              setView('list');
+            }
+          }
+        },isEdit?'保存修改':'添加工人')
+      )
+    );
+  }
+
+  return e('div',{className:'page'},e('div',{style:{padding:20}},'加载中…'));
+}
+
+/* ════════════════════════════
    APP ROOT
 ════════════════════════════ */
 const TABS_WORKER = [
@@ -1791,6 +2018,7 @@ const TABS_WORKER = [
 const TABS_COMPANY = [
   {key:'checkin',icon:'📍',label:'工人位置'},
   {key:'diary',icon:'📝',label:'项目管理'},
+  {key:'workers',icon:'👷',label:'工人管理'},
   {key:'rating',icon:'⭐',label:'信誉'},
   {key:'profile',icon:'👤',label:'公司资料'},
 ];
@@ -1890,6 +2118,7 @@ function App() {
     match:   e(MatchPage,   {profile:workerProfile, onGoProfile:()=>setTab('profile')}),
     checkin: e(CheckinPage, {role, authUser}),
     diary:   e(DiaryPage,   {role}),
+    workers: e(WorkerMgmtPage, {}),
     rating:  e(RatingPage,  {role}),
     profile: e(ProfilePage, {
       profile:workerProfile, setProfile:handleSetWorkerProfile,
