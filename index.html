@@ -264,6 +264,8 @@ var I18N = {
     pending_apps:'Pending Applications',
     no_pending:'No pending applications',
     welcome_back:'Welcome to GongJiangTong, entering ',
+    realtime:'Current Time', week_cycle:'Week Cycle', today_date:"Today's Date",
+    weekly_summary:'This Week Hours', total_colon:'Total ',
   }
 };
 
@@ -990,7 +992,7 @@ function CheckinPage({role, authUser}) {
   var timeStr = now.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
   const [gpsStatus,setGpsStatus] = useState('init');
   const [gpsCoords,setGpsCoords] = useState(null);
-  const [gpsMsg,setGpsMsg] = useState('点击按钮定位');
+  const [gpsMsg,setGpsMsg] = useState(t('gps_get'));
   const [address,setAddress] = useState('');
   const [punchIn,setPunchIn] = useState(null);
   const [punchOut,setPunchOut] = useState(null);
@@ -1084,12 +1086,12 @@ function CheckinPage({role, authUser}) {
               [{s:50,d:0},{s:70,d:0.5},{s:90,d:1}].map(function(p,i){return e('div',{key:i,className:'pulse-ring',style:{width:p.s,height:p.s,position:'absolute',top:'50%',left:'50%',animationDelay:p.d+'s'}});}),
               e('div',{className:'pulse-dot'})
             ),
-        e('div',{className:'map-badge'},isCompany?'📍 项目工地 — '+WDOTS.length+'人在场':gpsCoords?('📍 '+gpsCoords.lat+', '+gpsCoords.lng):'📍 未定位')
+        e('div',{className:'map-badge'},isCompany?('📍 '+(lang==='en'?'Site — '+WDOTS.length+' on site':'项目工地 — '+WDOTS.length+'人在场')):gpsCoords?('📍 '+gpsCoords.lat+', '+gpsCoords.lng):'📍 未定位')
       ),
       e('div',{style:{padding:'12px 16px'}},
         (isCompany?[
-          [t('today_attendance'),WDOTS.length+'人','ci-g'],[(lang==='en'?'Current Time':'实时时间'),timeStr,''],
-          [(lang==='en'?'Week Cycle':'本周周期'),_wklabel(todayStr),''],[(lang==='en'?"Today's Date":'今日日期'),now.toLocaleDateString('zh-CN'),'']
+          [t('today_attendance'),WDOTS.length+'人','ci-g'],[t('realtime'),timeStr,''],
+          [t('week_cycle'),_wklabel(todayStr),''],[t('today_date'),now.toLocaleDateString(lang==='en'?'en-AU':'zh-CN'),'']
         ]:[
           ['GPS',gpsStatus==='ok'?('✅ 已定位 '+gpsMsg):gpsStatus==='searching'?('🔍 '+t('gps_locating')):'❌ '+gpsMsg,gpsStatus==='ok'?'ci-g':'ci-r'],
           ['地址',address||'—',''],
@@ -1109,27 +1111,27 @@ function CheckinPage({role, authUser}) {
     !isCompany&&punchIn&&!punchOut&&e('button',{className:'ck-btn ck-out',onClick:doPunchOut},('📤 '+t('punch_out'))),
     !isCompany&&punchIn&&punchOut&&e('div',{className:'punch-done'},
       e('div',{style:{fontSize:14,fontWeight:700,color:'var(--g)'}},('✅ '+t('punch_done'))),
-      e('div',{style:{fontSize:11,color:'var(--sub)',marginTop:4}},'上班 '+punchIn+' → 下班 '+punchOut+' | '+(todayRec?todayRec.hours:0)+'小时')
+      e('div',{style:{fontSize:11,color:'var(--sub)',marginTop:4}},(lang==='en'?'In '+punchIn+' → Out '+punchOut:'上班 '+punchIn+' → 下班 '+punchOut)+' | '+(todayRec?todayRec.hours:0)+'小时')
     ),
 
     !isCompany&&e('div',{className:'hcard'},
-      e('div',{className:'hcard-hd'},'📊 本周工时',e('span',{className:'hcard-wk'},_wklabel(todayStr))),
+      e('div',{className:'hcard-hd'},('📊 '+t('weekly_hours')),e('span',{className:'hcard-wk'},_wklabel(todayStr))),
       e('div',{className:'hrow'},
         e('div',{className:'hname'},t('week_total')),
-        e('div',{className:'hsub'},'打卡 '+arr0.filter(function(r){return _wklabel(r.date)===_wklabel(todayStr);}).length+' 天'),
+        e('div',{className:'hsub'},(lang==='en'?'Clocked: ':'')+arr0.filter(function(r){return _wklabel(r.date)===_wklabel(todayStr);}).length+' 天'),
         e('div',{className:'hval'},arr0.filter(function(r){return _wklabel(r.date)===_wklabel(todayStr);}).reduce(function(a,r){return a+(r.hours||0);},0).toFixed(1)+'h')
       )
     ),
 
     !isCompany&&recent.length>0&&e('div',{className:'dcard'},
       e('div',{className:'dcard-hd'},t('checkin_records'),e('span',{style:{fontSize:10,opacity:0.75}},arr0.length+'天')),
-      recent.map(function(r){return e('div',{key:r.date,className:'drow'},e('div',{className:'ddate'},r.date.slice(5)),e('div',{className:'dinfo'},'上 '+(r.inTime||'—')+'  下 '+(r.outTime||t('in_progress'))),e('div',{className:'dh '+((r.hours||0)>=8?'ok':'')},(r.hours||0).toFixed(1)+'h'));})
+      recent.map(function(r){return e('div',{key:r.date,className:'drow'},e('div',{className:'ddate'},r.date.slice(5)),e('div',{className:'dinfo'},(lang==='en'?'In '+(r.inTime||'—')+'  Out '+(r.outTime||t('in_progress')):'上 '+(r.inTime||'—')+'  下 '+(r.outTime||t('in_progress')))),e('div',{className:'dh '+((r.hours||0)>=8?'ok':'')},(r.hours||0).toFixed(1)+'h'));})
     ),
 
     isCompany&&e('div',{className:'hcard',style:{margin:'10px 16px 0'}},
-      e('div',{className:'hcard-hd'},'📊 本周工时汇总',e('span',{className:'hcard-wk'},_wklabel(todayStr))),
-      e('div',null,wksum.map(function(w,i){return e('div',{key:w.name,className:'hrow'},e('div',{className:'hav',style:{background:['#d4420a','#1a6b3c','#1a4a8c'][i]}},w.name[0]),e('div',{style:{flex:1}},e('div',{className:'hname'},w.name),e('div',{className:'hsub'},'本周'+w.days+'天')),e('div',{className:'hval'},w.hrs.toFixed(1)+'h'));})),
-      e('div',{className:'hfoot'},e('div',{className:'htot'},'合计 ',e('b',null,wksum.reduce(function(a,w){return a+w.hrs;},0).toFixed(1)+'h')),e('button',{className:'xbtn',onClick:_exportcsv},('📥 '+t('export_excel'))))
+      e('div',{className:'hcard-hd'},('📊 '+t('weekly_summary')),e('span',{className:'hcard-wk'},_wklabel(todayStr))),
+      e('div',null,wksum.map(function(w,i){return e('div',{key:w.name,className:'hrow'},e('div',{className:'hav',style:{background:['#d4420a','#1a6b3c','#1a4a8c'][i]}},w.name[0]),e('div',{style:{flex:1}},e('div',{className:'hname'},w.name),e('div',{className:'hsub'},(lang==='en'?w.days+' day(s)':'本周'+w.days+'天'))),e('div',{className:'hval'},w.hrs.toFixed(1)+'h'));})),
+      e('div',{className:'hfoot'},e('div',{className:'htot'},t('total_colon'),e('b',null,wksum.reduce(function(a,w){return a+w.hrs;},0).toFixed(1)+'h')),e('button',{className:'xbtn',onClick:_exportcsv},('📥 '+t('export_excel'))))
     ),
 
     isCompany&&e('div',{style:{padding:'0 16px 14px'}},
@@ -1140,7 +1142,7 @@ function CheckinPage({role, authUser}) {
           for(var i=0;i<a.length;i++){if(a[i].date===todayStr){rec=a[i];break;}}
           return e('div',{key:w.n,style:{padding:'11px 13px',borderBottom:'1px solid var(--bd)',display:'flex',alignItems:'center',gap:10}},
             e('div',{style:{width:32,height:32,borderRadius:'50%',background:w.c,color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,fontSize:13}},w.n[0]),
-            e('div',{style:{flex:1}},e('div',{style:{fontSize:12,fontWeight:700}},w.n+' · '+w.t),e('div',{style:{fontSize:10,color:'var(--sub)',marginTop:2}},rec?('上班 '+rec.inTime+' — '+(rec.outTime||t('in_progress'))):t('not_checked'))),
+            e('div',{style:{flex:1}},e('div',{style:{fontSize:12,fontWeight:700}},w.n+' · '+w.t),e('div',{style:{fontSize:10,color:'var(--sub)',marginTop:2}},rec?((lang==='en'?'In '+rec.inTime+' — '+(rec.outTime||t('in_progress')):'上班 '+rec.inTime+' — '+(rec.outTime||t('in_progress')))):t('not_checked'))),
             rec?e('div',{style:{fontSize:11,fontWeight:700,color:rec.outTime?'var(--b)':'var(--g)',fontFamily:'DM Mono,monospace'}},rec.outTime?rec.hours+'h':t('on_duty')):e('div',{style:{fontSize:10,color:'var(--sub)'}},'—')
           );
         })
