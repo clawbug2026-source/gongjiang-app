@@ -2128,6 +2128,209 @@ function WorkerMgmtPage() {
 }
 
 /* ════════════════════════════
+   RECRUIT PAGE
+════════════════════════════ */
+
+/* Company job postings */
+if(!_MEM.jobPosts) _MEM.jobPosts = [
+  {id:1,title:'电工招募',types:['电工'],pay:48,payUnit:'时',city:'悉尼',headcount:2,desc:'恒大龙湾项目，需持白卡',status:'open',createdAt:'2024-03-01'},
+  {id:2,title:'钢筋工/水泥工',types:['钢筋工','水泥工'],pay:44,payUnit:'时',city:'墨尔本',headcount:3,desc:'绿地项目长期合作',status:'open',createdAt:'2024-03-05'},
+];
+try{var _jp=localStorage.getItem('__gj_jp__');if(_jp)_MEM.jobPosts=JSON.parse(_jp);}catch(e){}
+function _saveJobPosts(){try{localStorage.setItem('__gj_jp__',JSON.stringify(_MEM.jobPosts||[]));}catch(e){}}
+
+function RecruitPage() {
+  const TASK_TYPES = ['做墙铁','做顶铁','Tbar','做木板','做外墙铁','做外墙板','打胶','铺棉','钉板','抹灰','蹭灰','杂工','管工','电工','水泥工','钢筋工','木工'];
+  const CITIES = ['悉尼','墨尔本','布里斯班','珀斯','阿德莱德','堪培拉'];
+
+  const [posts, setPosts] = useState(()=>_MEM.jobPosts||[]);
+  const [apps, setApps] = useState(()=>_MEM.applications||[]);
+  const [view, setView] = useState('list'); // list | addPost | appList
+  const [selPost, setSelPost] = useState(null);
+  const [form, setForm] = useState({title:'',types:[],pay:'',payUnit:'时',city:'悉尼',headcount:1,desc:'',status:'open'});
+
+  const savePosts = (p)=>{ _MEM.jobPosts=p; _saveJobPosts(); setPosts(p); };
+  const refreshApps = ()=>{ setApps([..._MEM.applications||[]]); };
+  const setF = (k,v)=>setForm(p=>({...p,[k]:v}));
+  const toggleType = (t)=>setForm(p=>({...p,types:p.types.includes(t)?p.types.filter(x=>x!==t):[...p.types,t]}));
+
+  const pendingCount = (apps||[]).filter(a=>a.status==='pending').length;
+
+  const RCSS = `
+.rc-tabs{display:flex;border-bottom:1px solid var(--bd);margin:0 16px}
+.rc-tab{flex:1;padding:10px 0;text-align:center;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;color:var(--sub);border-bottom:2px solid transparent;font-family:'Noto Sans SC',sans-serif}
+.rc-tab.on{color:var(--b);border-bottom-color:var(--b)}
+.rc-badge{display:inline-flex;align-items:center;justify-content:center;background:var(--r);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;margin-left:4px}
+.rc-list{padding:0 16px 20px}
+.rc-add-btn{width:100%;padding:12px;border-radius:10px;border:2px dashed var(--bd2);background:var(--s2);color:var(--b);font-size:13px;font-weight:700;cursor:pointer;margin:12px 0 0;font-family:'Noto Sans SC',sans-serif}
+.rc-card{background:var(--sur);border-radius:12px;border:1px solid var(--bd);margin-top:10px;overflow:hidden;box-shadow:var(--sh)}
+.rc-card-hd{padding:13px 14px}
+.rc-card-title{font-size:14px;font-weight:900;margin-bottom:4px}
+.rc-card-meta{font-size:11px;color:var(--sub);display:flex;gap:10px;flex-wrap:wrap}
+.rc-card-pay{font-size:13px;font-weight:700;color:var(--g);font-family:'DM Mono',monospace;margin-top:6px}
+.rc-card-desc{font-size:11px;color:var(--sub);margin-top:5px;line-height:1.5}
+.rc-card-ft{display:flex;padding:9px 14px;border-top:1px solid var(--bd);background:var(--s2);gap:6px;align-items:center}
+.rc-status{font-size:10px;padding:3px 9px;border-radius:12px;font-weight:700}
+.rcs-open{background:#e8f5ee;color:var(--g)}.rcs-closed{background:var(--s3);color:var(--sub)}
+.app-card{background:var(--sur);border-radius:12px;border:1px solid var(--bd);margin-top:10px;overflow:hidden;box-shadow:var(--sh)}
+.app-hd{display:flex;align-items:center;gap:12px;padding:13px 14px}
+.app-av{width:40px;height:40px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:17px;flex-shrink:0}
+.app-info{flex:1}
+.app-name{font-size:13px;font-weight:700}
+.app-sub{font-size:11px;color:var(--sub);margin-top:2px}
+.app-actions{display:flex;border-top:1px solid var(--bd)}
+.app-accept{flex:1;padding:11px;border:none;background:#e8f5ee;color:var(--g);font-size:12px;font-weight:700;cursor:pointer;border-right:1px solid var(--bd);font-family:'Noto Sans SC',sans-serif}
+.app-reject{flex:1;padding:11px;border:none;background:#fff0ec;color:var(--r);font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans SC',sans-serif}
+.pf-in2{width:100%;padding:9px 11px;background:var(--s2);border:1px solid var(--bd);border-radius:7px;font-size:13px;color:var(--tx);outline:none;margin-bottom:8px;display:block;font-family:'Noto Sans SC',sans-serif}
+.pf-sel2{width:100%;padding:9px 11px;background:var(--s2);border:1px solid var(--bd);border-radius:7px;font-size:12px;color:var(--tx);outline:none;margin-bottom:8px;font-family:'Noto Sans SC',sans-serif}
+.pf-label2{font-size:11px;font-weight:700;color:var(--sub);margin:6px 0 5px;display:block}
+.chip-sm{padding:4px 10px;border-radius:14px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--bd2);margin:3px}
+  `;
+
+  const [rcTab, setRcTab] = useState('posts');
+
+  if(view==='addPost') return e('div',{className:'page'},
+    e('style',null,RCSS),
+    e('div',{style:{display:'flex',alignItems:'center',gap:10,padding:'14px 16px 0'}},
+      e('button',{style:{background:'none',border:'none',fontSize:22,cursor:'pointer',color:'var(--sub)'},onClick:()=>setView('list')},'←'),
+      e('div',{style:{fontSize:16,fontWeight:900}},'发布招聘')
+    ),
+    e('div',{style:{padding:'0 16px 30px'}},
+      e('span',{className:'pf-label2'},'职位名称 *'),
+      e('input',{className:'pf-in2',placeholder:'如：电工招募',value:form.title,onChange:ev=>setF('title',ev.target.value)}),
+      e('span',{className:'pf-label2'},'所需工种（多选）'),
+      e('div',{style:{display:'flex',flexWrap:'wrap',marginBottom:10}},
+        TASK_TYPES.map(t=>e('span',{key:t,className:'chip-sm',onClick:()=>toggleType(t),
+          style:{background:form.types.includes(t)?'var(--b)':'var(--s3)',color:form.types.includes(t)?'#fff':'var(--sub)',
+                 border:'1px solid '+(form.types.includes(t)?'var(--b)':'var(--bd2)')}},t))
+      ),
+      e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}},
+        e('div',null,
+          e('span',{className:'pf-label2'},'时薪 A$ *'),
+          e('input',{className:'pf-in2',type:'number',placeholder:'如：45',value:form.pay,onChange:ev=>setF('pay',ev.target.value)})
+        ),
+        e('div',null,
+          e('span',{className:'pf-label2'},'结算方式'),
+          e('select',{className:'pf-sel2',value:form.payUnit,onChange:ev=>setF('payUnit',ev.target.value)},
+            ['时','天','周'].map(o=>e('option',{key:o},o)))
+        )
+      ),
+      e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}},
+        e('div',null,
+          e('span',{className:'pf-label2'},'城市'),
+          e('select',{className:'pf-sel2',value:form.city,onChange:ev=>setF('city',ev.target.value)},
+            CITIES.map(c=>e('option',{key:c},c)))
+        ),
+        e('div',null,
+          e('span',{className:'pf-label2'},'招募人数'),
+          e('input',{className:'pf-in2',type:'number',min:1,value:form.headcount,onChange:ev=>setF('headcount',parseInt(ev.target.value)||1)})
+        )
+      ),
+      e('span',{className:'pf-label2'},'职位描述'),
+      e('textarea',{className:'pf-in2',style:{minHeight:72,resize:'none',outline:'none'},placeholder:'项目信息、要求、福利…',value:form.desc,onChange:ev=>setF('desc',ev.target.value)}),
+      e('button',{
+        style:{width:'100%',padding:13,borderRadius:10,border:'none',background:'var(--b)',color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"},
+        onClick:()=>{
+          if(!form.title||!form.pay)return;
+          var np={id:Date.now(),...form,createdAt:new Date().toISOString().slice(0,10)};
+          savePosts([...posts,np]);setView('list');
+        }
+      },'发布职位')
+    )
+  );
+
+  return e('div',{className:'page'},
+    e('style',null,RCSS),
+    e('div',{className:'rc-tabs'},
+      e('button',{className:'rc-tab '+(rcTab==='posts'?'on':''),onClick:()=>setRcTab('posts')},'📋 职位管理'),
+      e('button',{className:'rc-tab '+(rcTab==='apps'?'on':''),onClick:()=>{setRcTab('apps');refreshApps();}},
+        '📥 申请审核',
+        pendingCount>0&&e('span',{className:'rc-badge'},pendingCount)
+      )
+    ),
+
+    rcTab==='posts'&&e('div',{className:'rc-list'},
+      e('button',{className:'rc-add-btn',onClick:()=>{
+        setForm({title:'',types:[],pay:'',payUnit:'时',city:'悉尼',headcount:1,desc:'',status:'open'});
+        setView('addPost');
+      }},'＋ 发布新职位'),
+      posts.length===0&&e('div',{style:{textAlign:'center',padding:'30px 0',color:'var(--sub)',fontSize:13}},'暂无职位，点击上方发布'),
+      posts.map(p=>e('div',{key:p.id,className:'rc-card'},
+        e('div',{className:'rc-card-hd'},
+          e('div',{className:'rc-card-title'},p.title),
+          e('div',{className:'rc-card-meta'},
+            e('span',null,'📍 '+p.city),
+            e('span',null,'👷 需 '+p.headcount+' 人'),
+            e('span',null,'📅 '+p.createdAt)
+          ),
+          e('div',{className:'rc-card-pay'},'A$ '+p.pay+' / '+p.payUnit),
+          p.desc&&e('div',{className:'rc-card-desc'},p.desc)
+        ),
+        e('div',{className:'rc-card-ft'},
+          e('span',{className:'rc-status '+(p.status==='open'?'rcs-open':'rcs-closed')},p.status==='open'?'招募中':'已关闭'),
+          e('span',{style:{fontSize:11,color:'var(--sub)',flex:1,marginLeft:8}},
+            (apps||[]).filter(a=>a.jobId===p.id&&a.status==='pending').length+' 人待审'),
+          e('button',{style:{padding:'5px 10px',borderRadius:6,border:'none',fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif",
+            background:p.status==='open'?'#fff0ec':'#e8f5ee',color:p.status==='open'?'var(--r)':'var(--g)'},
+            onClick:()=>savePosts(posts.map(x=>x.id===p.id?{...x,status:x.status==='open'?'closed':'open'}:x))},
+            p.status==='open'?'关闭':'重开'),
+          e('button',{style:{padding:'5px 10px',borderRadius:6,border:'none',background:'#fff0ec',color:'var(--r)',fontSize:11,fontWeight:700,cursor:'pointer',marginLeft:6,fontFamily:"'Noto Sans SC',sans-serif"},
+            onClick:()=>savePosts(posts.filter(x=>x.id!==p.id))},'删除')
+        )
+      ))
+    ),
+
+    rcTab==='apps'&&e('div',{className:'rc-list'},
+      (apps||[]).filter(a=>a.status==='pending').length===0
+        &&e('div',{style:{textAlign:'center',padding:'30px 0',color:'var(--sub)'}},
+          e('div',{style:{fontSize:36,marginBottom:8}},'📭'),
+          e('div',{style:{fontSize:13}},'暂无待审核申请')
+        ),
+      (apps||[]).filter(a=>a.status==='pending').map(a=>e('div',{key:a.id,className:'app-card'},
+        e('div',{className:'app-hd'},
+          e('div',{className:'app-av',style:{background:'#f5a623'}},a.workerName[0]),
+          e('div',{className:'app-info'},
+            e('div',{className:'app-name'},a.workerName),
+            e('div',{className:'app-sub'},'申请：'+a.jobTitle+' · '+a.appliedAt),
+            a.workerPhone&&e('div',{className:'app-sub'},'📱 '+a.workerPhone),
+            a.workerType&&e('div',{className:'app-sub'},'🔧 '+a.workerType)
+          )
+        ),
+        e('div',{className:'app-actions'},
+          e('button',{className:'app-accept',
+            onClick:()=>{
+              /* Accept: add to roster */
+              if(!_MEM.roster)_MEM.roster=[];
+              var already=_MEM.roster.some(w=>w.phone===a.workerPhone||w.name===a.workerName);
+              if(!already){
+                _MEM.roster.push({
+                  id:Date.now(),name:a.workerName,phone:a.workerPhone||'',
+                  email:a.workerEmail||'',type:a.workerType||'杂工',
+                  status:'probation',pay:40,payUnit:'时',
+                  joined:new Date().toISOString().slice(0,10),
+                  abn:'',address:'',emergency:'',notes:'',gender:'',age:''
+                });
+                _saveRoster();
+              }
+              _MEM.applications=(_MEM.applications||[]).map(x=>x.id===a.id?{...x,status:'accepted'}:x);
+              _saveApps();
+              refreshApps();
+            }
+          },'✅ 录取 → 加入工人管理'),
+          e('button',{className:'app-reject',
+            onClick:()=>{
+              _MEM.applications=(_MEM.applications||[]).map(x=>x.id===a.id?{...x,status:'rejected'}:x);
+              _saveApps();
+              refreshApps();
+            }
+          },'❌ 拒绝')
+        )
+      ))
+    )
+  );
+}
+
+/* ════════════════════════════
    APP ROOT
 ════════════════════════════ */
 const TABS_WORKER = [
@@ -2140,6 +2343,7 @@ const TABS_WORKER = [
 const TABS_COMPANY = [
   {key:'checkin',icon:'📍',label:'工人位置'},
   {key:'diary',icon:'📝',label:'项目管理'},
+  {key:'recruit',icon:'📋',label:'招聘'},
   {key:'workers',icon:'👷',label:'工人管理'},
   {key:'rating',icon:'⭐',label:'信誉'},
   {key:'profile',icon:'👤',label:'公司资料'},
@@ -2240,6 +2444,7 @@ function App() {
     match:   e(MatchPage,   {profile:workerProfile, onGoProfile:()=>setTab('profile')}),
     checkin: e(CheckinPage, {role, authUser}),
     diary:   e(DiaryPage,   {role}),
+    recruit: e(RecruitPage, {}),
     workers: e(WorkerMgmtPage, {}),
     rating:  e(RatingPage,  {role}),
     profile: e(ProfilePage, {
