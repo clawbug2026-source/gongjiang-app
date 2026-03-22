@@ -1670,21 +1670,21 @@ function App() {
   if(!authUser) {
     if(authScreen==='welcome') return e('div',null,
       e('style',null,AUTH_CSS),
-      WelcomeScreen({
+      e(WelcomeScreen,{
         onLogin:()=>setAuthScreen('login'),
         onRegister:(r)=>{setInitRole(r);setAuthScreen('register');}
       })
     );
     if(authScreen==='login') return e('div',null,
       e('style',null,AUTH_CSS),
-      LoginScreen({
+      e(LoginScreen,{
         onBack:()=>setAuthScreen('welcome'),
         onDone:handleAuthDone
       })
     );
     if(authScreen==='register') return e('div',null,
       e('style',null,AUTH_CSS),
-      RegisterScreen({
+      e(RegisterScreen,{
         initRole,
         onBack:()=>setAuthScreen('welcome'),
         onDone:handleAuthDone
