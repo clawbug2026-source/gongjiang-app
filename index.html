@@ -38,6 +38,91 @@ html,body{height:100%;background:#1a1714;overscroll-behavior:none;-webkit-tap-hi
 const e = React.createElement;
 const { useState, useEffect, useRef } = React;
 
+/* ════════════════════════════
+   I18N TRANSLATIONS
+════════════════════════════ */
+const I18N = {
+  zh: {
+    logo_sub: '建筑工人智慧用工平台',
+    welcome_title: '欢迎使用工匠通',
+    welcome_desc: '连接建筑工人与优质雇主，让用工更简单、更透明',
+    iam_worker: '我是工人',
+    iam_worker_sub: '找工作·打卡·日志',
+    iam_company: '我是公司',
+    iam_company_sub: '发布职位·管理工人',
+    have_account: '已有账户？登录',
+    login_title: '登录',
+    login_phone: '手机号',
+    login_pwd: '密码',
+    login_btn: '登录',
+    login_demo_worker: '工人演示',
+    login_demo_company: '公司演示',
+    back: '返回',
+    reg_title_worker: '工人注册',
+    reg_title_company: '公司注册',
+    reg_name: '姓名',
+    reg_phone: '手机号',
+    reg_email: '邮箱（选填）',
+    reg_pwd: '密码',
+    reg_confirm: '确认密码',
+    reg_company: '公司名称',
+    reg_abn: 'ABN（选填）',
+    reg_btn: '注册',
+    already_account: '已有账户？登录',
+    phone_placeholder: '如：0412-xxx-xxx',
+    pwd_placeholder: '请输入密码',
+    name_placeholder: '真实姓名',
+    company_placeholder: '公司全称',
+    error_fill: '请填写所有必填项',
+    error_pwd: '两次密码不一致',
+    error_exists: '该手机号已注册',
+    error_login: '手机号或密码错误',
+  },
+  en: {
+    logo_sub: 'Smart Construction Workforce Platform',
+    welcome_title: 'Welcome to GongJiangTong',
+    welcome_desc: 'Connecting workers & employers — simpler, smarter hiring',
+    iam_worker: "I'm a Worker",
+    iam_worker_sub: 'Find Jobs · Clock In · Logs',
+    iam_company: "I'm a Company",
+    iam_company_sub: 'Post Jobs · Manage Workers',
+    have_account: 'Already have an account? Log in',
+    login_title: 'Log In',
+    login_phone: 'Phone Number',
+    login_pwd: 'Password',
+    login_btn: 'Log In',
+    login_demo_worker: 'Worker Demo',
+    login_demo_company: 'Company Demo',
+    back: 'Back',
+    reg_title_worker: 'Worker Sign Up',
+    reg_title_company: 'Company Sign Up',
+    reg_name: 'Full Name',
+    reg_phone: 'Phone Number',
+    reg_email: 'Email (optional)',
+    reg_pwd: 'Password',
+    reg_confirm: 'Confirm Password',
+    reg_company: 'Company Name',
+    reg_abn: 'ABN (optional)',
+    reg_btn: 'Sign Up',
+    already_account: 'Already have an account? Log in',
+    phone_placeholder: 'e.g. 0412-xxx-xxx',
+    pwd_placeholder: 'Enter password',
+    name_placeholder: 'Your full name',
+    company_placeholder: 'Company full name',
+    error_fill: 'Please fill in all required fields',
+    error_pwd: 'Passwords do not match',
+    error_exists: 'Phone number already registered',
+    error_login: 'Incorrect phone or password',
+  }
+};
+
+/* Global lang state - persisted */
+var _lang = 'zh';
+try { _lang = localStorage.getItem('__gj_lang__') || 'zh'; } catch(e){}
+function t(key) { return (I18N[_lang]||I18N.zh)[key] || key; }
+function setLang(l) { _lang = l; try { localStorage.setItem('__gj_lang__', l); } catch(e){} }
+
+
 /* ═══ CONSTANTS ═══ */
 const JOB_TYPES = ["水工","电工","水泥工","窗户铝合金","木工","Carpenter","Plaster","油漆工","搬运工","杂工"];
 const CITIES_LIST = ["悉尼","墨尔本","布里斯班","珀斯","阿德莱德","堪培拉","上海","北京","广州","深圳"];
@@ -1619,6 +1704,7 @@ function ProfilePage(props) {
 }
 
 
+
 /* ════════════════════════════
    AUTH SYSTEM
 ════════════════════════════ */
@@ -1683,22 +1769,29 @@ function logout() {
 
 /* ── WELCOME SCREEN ── */
 function WelcomeScreen({onLogin, onRegister}) {
+  const [lang, setLangState] = useState(_lang);
+  const switchLang = () => { const nl = lang==='zh'?'en':'zh'; setLang(nl); setLangState(nl); };
   return e('div',{className:'auth-wrap'},
+    e('button',{onClick:switchLang,style:{
+      position:'absolute',top:16,right:16,background:'rgba(255,255,255,0.12)',border:'1px solid rgba(255,255,255,0.25)',
+      color:'#fff',padding:'5px 12px',borderRadius:20,fontSize:12,fontWeight:700,cursor:'pointer',
+      fontFamily:"'Noto Sans SC',sans-serif",zIndex:10,letterSpacing:0.5
+    }},lang==='zh'?'EN':'中文'),
     e('div',{className:'auth-logo'},'工',e('b',null,'匠'),'通'),
-    e('div',{className:'auth-sub'},'建筑工人智慧用工平台'),
+    e('div',{className:'auth-sub'},t('logo_sub')),
     e('div',{className:'auth-card'},
-      e('div',{className:'auth-title'},'欢迎使用工匠通'),
-      e('div',{className:'auth-desc'},'连接建筑工人与优质雇主，让用工更简单、更透明'),
+      e('div',{className:'auth-title'},t('welcome_title')),
+      e('div',{className:'auth-desc'},t('welcome_desc')),
       e('div',{className:'role-cards'},
         e('div',{className:'role-card',onClick:()=>onRegister('worker')},
           e('div',{className:'role-card-icon'},'👷'),
-          e('div',{className:'role-card-name'},'我是工人'),
-          e('div',{className:'role-card-desc'},'找工作·打卡·日志')
+          e('div',{className:'role-card-name'},t('iam_worker')),
+          e('div',{className:'role-card-desc'},t('iam_worker_sub'))
         ),
         e('div',{className:'role-card',onClick:()=>onRegister('company')},
           e('div',{className:'role-card-icon'},'🏢'),
-          e('div',{className:'role-card-name'},'我是公司'),
-          e('div',{className:'role-card-desc'},'发布职位·管理工人')
+          e('div',{className:'role-card-name'},t('iam_company')),
+          e('div',{className:'role-card-desc'},t('iam_company_sub'))
         )
       ),
       e('div',{className:'auth-divider'},e('span',null,'已有账号')),
@@ -1766,12 +1859,12 @@ function RegisterScreen({initRole, onBack, onDone}) {
       e('div',{className:'role-cards'},
         e('div',{className:`role-card ${role==='worker'?'sel-w':''}`,onClick:()=>setRole('worker')},
           e('div',{className:'role-card-icon'},'👷'),
-          e('div',{className:'role-card-name'},'工人注册'),
+          e('div',{className:'role-card-name'},t('reg_title_worker')),
           e('div',{className:'role-card-desc'},'找工作·打卡·日志·信誉')
         ),
         e('div',{className:`role-card ${role==='company'?'sel-c':''}`,onClick:()=>setRole('company')},
           e('div',{className:'role-card-icon'},'🏢'),
-          e('div',{className:'role-card-name'},'公司注册'),
+          e('div',{className:'role-card-name'},t('reg_title_company')),
           e('div',{className:'role-card-desc'},'招工·管理·任务·审查')
         )
       ),
@@ -1849,9 +1942,9 @@ function LoginScreen({onBack, onDone}) {
       e('div',{className:'auth-desc'},'使用注册时的手机号和密码登录'),
       err && e('div',{className:'auth-err'},err),
       e('div',{className:'auth-form'},
-        e('input',{className:'auth-input',placeholder:'手机号',type:'tel',value:phone,onChange:ev=>setPhone(ev.target.value)}),
-        e('input',{className:'auth-input',placeholder:'密码',type:'password',value:password,onChange:ev=>setPassword(ev.target.value)}),
-        e('button',{className:'auth-btn auth-btn-c',onClick:submit},'登录')
+        e('input',{className:'auth-input',placeholder:t('login_phone'),type:'tel',value:phone,onChange:ev=>setPhone(ev.target.value)}),
+        e('input',{className:'auth-input',placeholder:t('login_pwd'),type:'password',value:password,onChange:ev=>setPassword(ev.target.value)}),
+        e('button',{className:'auth-btn auth-btn-c',onClick:submit},t('login_btn'))
       ),
       e('div',{className:'auth-divider'},e('span',null,'快速体验')),
       e('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}},
