@@ -41,85 +41,214 @@ const { useState, useEffect, useRef } = React;
 /* ════════════════════════════
    I18N TRANSLATIONS
 ════════════════════════════ */
-const I18N = {
+var I18N = {
   zh: {
-    logo_sub: '建筑工人智慧用工平台',
-    welcome_title: '欢迎使用工匠通',
-    welcome_desc: '连接建筑工人与优质雇主，让用工更简单、更透明',
-    iam_worker: '我是工人',
-    iam_worker_sub: '找工作·打卡·日志',
-    iam_company: '我是公司',
-    iam_company_sub: '发布职位·管理工人',
-    have_account: '已有账户？登录',
-    login_title: '登录',
-    login_phone: '手机号',
-    login_pwd: '密码',
-    login_btn: '登录',
-    login_demo_worker: '工人演示',
-    login_demo_company: '公司演示',
-    back: '返回',
-    reg_title_worker: '工人注册',
-    reg_title_company: '公司注册',
-    reg_name: '姓名',
-    reg_phone: '手机号',
-    reg_email: '邮箱（选填）',
-    reg_pwd: '密码',
-    reg_confirm: '确认密码',
-    reg_company: '公司名称',
-    reg_abn: 'ABN（选填）',
-    reg_btn: '注册',
-    already_account: '已有账户？登录',
-    phone_placeholder: '如：0412-xxx-xxx',
-    pwd_placeholder: '请输入密码',
-    name_placeholder: '真实姓名',
-    company_placeholder: '公司全称',
-    error_fill: '请填写所有必填项',
-    error_pwd: '两次密码不一致',
-    error_exists: '该手机号已注册',
-    error_login: '手机号或密码错误',
+    /* Auth */
+    logo_sub:'建筑工人智慧用工平台', welcome_title:'欢迎使用工匠通',
+    welcome_desc:'连接建筑工人与优质雇主，让用工更简单、更透明',
+    iam_worker:'我是工人', iam_worker_sub:'找工作·打卡·日志',
+    iam_company:'我是公司', iam_company_sub:'发布职位·管理工人',
+    have_account:'已有账户？登录', login_title:'登录',
+    login_phone:'手机号', login_pwd:'密码', login_btn:'登录',
+    login_demo_worker:'工人演示', login_demo_company:'公司演示',
+    back:'返回', reg_title_worker:'工人注册', reg_title_company:'公司注册',
+    reg_name:'姓名', reg_phone:'手机号', reg_email:'邮箱（选填）',
+    reg_pwd:'密码', reg_confirm:'确认密码', reg_company:'公司名称',
+    reg_abn:'ABN（选填）', reg_btn:'注册', already_account:'已有账户？登录',
+    /* Nav tabs - worker */
+    tab_match:'找工作', tab_checkin:'签到', tab_diary:'日志',
+    tab_rating:'信誉', tab_profile:'我的',
+    /* Nav tabs - company */
+    tab_location:'工人位置', tab_project:'项目管理', tab_recruit:'招聘',
+    tab_workers:t('wm_title'), tab_company_profile:'公司资料',
+    /* Match page */
+    match_title:'智能匹配', match_sort_match:'匹配度', match_sort_pay:'薪资最高', match_sort_rating:'好评优先',
+    match_apply:'立即申请', match_later:'稍后再看', match_score:'匹配分',
+    match_hint:'请前往「我的」填写工种和城市，匹配结果更精准',
+    /* Checkin */
+    gps_locating:'定位中…', gps_get:'获取GPS位置', gps_ok:'已定位',
+    gps_error:'定位失败', gps_addr:'地址', gps_coord:'坐标',
+    gps_status:'GPS', punch_in:'GPS打卡上班', punch_out:'GPS打卡下班',
+    punch_done:'今日打卡完成', punch_in_time:t('punch_in_time'), punch_out_time:t('punch_out_time'),
+    hours_today:t('hours_today'), weekly_hours:t('weekly_hours'), export_excel:'导出Excel',
+    week_total:t('week_total'), days:'天', checkin_records:t('checkin_records'),
+    today_attendance:t('today_attendance'), on_duty:t('on_duty'), not_checked:t('not_checked'),
+    in_progress:t('in_progress'),
+    /* Diary */
+    diary_worker:'工作日志', diary_add:'添加日志', diary_date:'日期',
+    diary_task:'任务类型', diary_hours:'工时', diary_content:'工作内容',
+    diary_photos:'照片', diary_save:'保存', diary_tasks_today:'今日任务',
+    diary_done:t('proj_done'), diary_undone:'未完成',
+    /* Project */
+    proj_title:t('proj_title'), proj_add:t('proj_add'), proj_edit:'修改项目',
+    proj_edit_info:t('proj_edit_info'), proj_name:'项目名称', proj_site:'工地地址',
+    proj_desc:'项目描述', proj_color:'项目颜色', proj_workers:'指派工人',
+    proj_create:t('proj_create'), proj_save:t('proj_save'), proj_cancel:t('cancel'),
+    proj_active:t('in_progress'), proj_done:t('proj_done'), proj_archive:t('proj_archive'), proj_reopen:t('proj_reopen'),
+    proj_tasks:'任务', proj_dispatch:t('proj_dispatch'), proj_new_task:'派发新任务',
+    proj_task_type:'工作类型', proj_area:'区域', proj_assign:'指派工人',
+    proj_deadline:'截止时间', proj_quota:'达标要求', proj_no_tasks:t('proj_no_tasks'),
+    proj_worker_logs:'工人日志', proj_no_logs:t('proj_no_logs'),
+    proj_back:t('proj_back'), task_mark_done:t('task_mark_done'), task_done:t('proj_done'),
+    task_pending:t('task_pending'),
+    /* Rating */
+    rating_title:'信誉评级', rating_companies:'公司评级', rating_workers:'工人评级',
+    rating_score:'信誉分', rating_write:t('rating_write'), rating_submit:t('rating_submit'),
+    rating_cancel:t('cancel'), rating_window:'评价时限', rating_excellent:t('rating_excellent'),
+    rating_good:t('rating_good'), rating_avg:t('rating_avg'), rating_poor:t('rating_poor'),
+    /* Profile - worker */
+    prof_title:'我的资料', prof_save:t('prof_save'), prof_saved:'已保存！',
+    prof_basic:'基本信息', prof_name:'姓名', prof_gender:'性别',
+    prof_age:'年龄', prof_phone:'电话', prof_email:'邮箱', prof_address:'家庭地址',
+    prof_emergency:'紧急联系人', prof_city_pref:'城市偏好',
+    prof_current_city:'当前所在城市', prof_work_cities:'希望工作城市（多选）',
+    prof_work_info:'工作信息', prof_types:'应聘工种（多选）',
+    prof_experience:'工龄（年）', prof_vehicle:'交通工具', prof_pay:'预计时薪（A$）',
+    prof_pay_unit:'薪资方式', prof_tools:'持有工具', prof_docs:'证件上传',
+    prof_license:'驾照 / 护照', prof_cert:'工作证件', prof_cert_desc:'证件描述',
+    prof_notes:'其他补充', prof_logout:t('prof_logout'),
+    /* Profile - company */
+    comp_title:'公司资料', comp_name:'公司名称', comp_cities:'所在城市（多选）',
+    comp_size:'公司规模', comp_pay_cycle:'薪资支付周期', comp_work_type:'工程内容',
+    comp_types:'所需工种', comp_max_pay:'最高时薪（A$）', comp_min_exp:'最低工龄要求',
+    comp_desc:'公司简介', comp_save:t('comp_save'),
+    /* Worker Mgmt */
+    wm_title:t('wm_title'), wm_all:'全部', wm_add_lookup:'添加工人（手机号/账号）',
+    wm_add_manual:'手动填写', wm_add:'新增工人', wm_search:'查找',
+    wm_not_found:'未找到该用户', wm_add_confirm:'✅ 添加到工人管理',
+    wm_pending_apps:'待处理申请', wm_accept:'✅ 录取', wm_reject:t('wm_reject'),
+    wm_accept_full:t('wm_accept_full'), wm_delete:t('delete'),
+    wm_edit:t('wm_edit'), wm_back:t('wm_back'),
+    status_active:t('status_active'), status_probation:t('status_probation'), status_inactive:t('status_inactive'),
+    wm_pay:'薪资', wm_joined:'入职日期', wm_contact:'联系方式',
+    wm_notes:'备注', wm_save:t('proj_save'), wm_add_btn:t('wm_add_btn'),
+    /* Recruit */
+    rc_jobs:'职位管理', rc_apps:'申请审核', rc_post:'发布招聘',
+    rc_new_post:'发布新职位', rc_open:t('rc_open'), rc_closed:t('rc_closed'),
+    rc_close_post:'关闭', rc_reopen_post:t('proj_reopen'), rc_delete:t('delete'),
+    rc_pending_apps:' 人待审', rc_no_jobs:t('rc_no_jobs'),
+    rc_no_apps:t('rc_no_apps'), rc_title:'职位名称', rc_types:'所需工种（多选）',
+    rc_pay:'时薪 A$', rc_pay_unit:'结算方式', rc_city:'城市',
+    rc_headcount:'招募人数', rc_desc:'职位描述', rc_publish:t('rc_publish'),
+    rc_apply_for:'申请：', rc_app_type:'🔧 ',
+    /* GPS / Map */
+    nearby_title:'附近500米内建筑物', select_location:'请选择您的打卡地点',
+    selected_change:'更换', no_nearby:'暂无附近建筑物',
+    /* Common */
+    workers:'人', tasks:'任务', complete:'完成', start_date:'开始',
+    save:'保存', cancel:t('cancel'), delete:t('delete'), edit:'编辑',
+    back_list:'← 返回', no_data:'暂无数据', loading:t('loading'),
+    male:'男', female:'女', yes:'有', no:'无', unknown:'—',
+    per_hour:'时', per_day:'天', per_week:'周', per_year:'年',
+    weekly_wed_tue:'每周三至下周二', no_require:'无要求', years_above:'年以上',
   },
   en: {
-    logo_sub: 'Smart Construction Workforce Platform',
-    welcome_title: 'Welcome to GongJiangTong',
-    welcome_desc: 'Connecting workers & employers — simpler, smarter hiring',
-    iam_worker: "I'm a Worker",
-    iam_worker_sub: 'Find Jobs · Clock In · Logs',
-    iam_company: "I'm a Company",
-    iam_company_sub: 'Post Jobs · Manage Workers',
-    have_account: 'Already have an account? Log in',
-    login_title: 'Log In',
-    login_phone: 'Phone Number',
-    login_pwd: 'Password',
-    login_btn: 'Log In',
-    login_demo_worker: 'Worker Demo',
-    login_demo_company: 'Company Demo',
-    back: 'Back',
-    reg_title_worker: 'Worker Sign Up',
-    reg_title_company: 'Company Sign Up',
-    reg_name: 'Full Name',
-    reg_phone: 'Phone Number',
-    reg_email: 'Email (optional)',
-    reg_pwd: 'Password',
-    reg_confirm: 'Confirm Password',
-    reg_company: 'Company Name',
-    reg_abn: 'ABN (optional)',
-    reg_btn: 'Sign Up',
-    already_account: 'Already have an account? Log in',
-    phone_placeholder: 'e.g. 0412-xxx-xxx',
-    pwd_placeholder: 'Enter password',
-    name_placeholder: 'Your full name',
-    company_placeholder: 'Company full name',
-    error_fill: 'Please fill in all required fields',
-    error_pwd: 'Passwords do not match',
-    error_exists: 'Phone number already registered',
-    error_login: 'Incorrect phone or password',
+    /* Auth */
+    logo_sub:'Smart Construction Workforce Platform', welcome_title:'Welcome to GongJiangTong',
+    welcome_desc:'Connecting workers & employers — simpler, smarter hiring',
+    iam_worker:"I'm a Worker", iam_worker_sub:'Find Jobs · Clock In · Logs',
+    iam_company:"I'm a Company", iam_company_sub:'Post Jobs · Manage Workers',
+    have_account:'Already have an account? Log in', login_title:'Log In',
+    login_phone:'Phone Number', login_pwd:'Password', login_btn:'Log In',
+    login_demo_worker:'Worker Demo', login_demo_company:'Company Demo',
+    back:'Back', reg_title_worker:'Worker Sign Up', reg_title_company:'Company Sign Up',
+    reg_name:'Full Name', reg_phone:'Phone Number', reg_email:'Email (optional)',
+    reg_pwd:'Password', reg_confirm:'Confirm Password', reg_company:'Company Name',
+    reg_abn:'ABN (optional)', reg_btn:'Sign Up', already_account:'Already have an account? Log in',
+    /* Nav tabs - worker */
+    tab_match:'Find Work', tab_checkin:'Clock In', tab_diary:'Diary',
+    tab_rating:'Rating', tab_profile:'Profile',
+    /* Nav tabs - company */
+    tab_location:'Worker Map', tab_project:'Projects', tab_recruit:'Recruit',
+    tab_workers:'Workers', tab_company_profile:'Company',
+    /* Match page */
+    match_title:'Smart Match', match_sort_match:'Best Match', match_sort_pay:'Highest Pay', match_sort_rating:'Top Rated',
+    match_apply:'Apply Now', match_later:'Maybe Later', match_score:'Match Score',
+    match_hint:'Go to Profile and fill in your trade & city for better matches',
+    /* Checkin */
+    gps_locating:'Locating…', gps_get:'Get GPS Location', gps_ok:'Located',
+    gps_error:'Location Failed', gps_addr:'Address', gps_coord:'Coordinates',
+    gps_status:'GPS', punch_in:'Clock In', punch_out:'Clock Out',
+    punch_done:"Today's Clock Complete", punch_in_time:'Clock In', punch_out_time:'Clock Out',
+    hours_today:"Today's Hours", weekly_hours:'This Week', export_excel:'Export Excel',
+    week_total:'Weekly Total', days:'days', checkin_records:'Clock Records',
+    today_attendance:"Today's Attendance", on_duty:'On Site', not_checked:'Not Clocked',
+    in_progress:'In Progress',
+    /* Diary */
+    diary_worker:'Work Diary', diary_add:'Add Entry', diary_date:'Date',
+    diary_task:'Task Type', diary_hours:'Hours', diary_content:'Work Notes',
+    diary_photos:'Photos', diary_save:'Save', diary_tasks_today:"Today's Tasks",
+    diary_done:'Done', diary_undone:'Not Done',
+    /* Project */
+    proj_title:'Projects / Sites', proj_add:'Add Project', proj_edit:'Edit Project',
+    proj_edit_info:'Edit Project Info', proj_name:'Project Name', proj_site:'Site Address',
+    proj_desc:'Description', proj_color:'Color', proj_workers:'Assign Workers',
+    proj_create:'Create Project', proj_save:'Save Changes', proj_cancel:'Cancel',
+    proj_active:'Active', proj_done:'Complete', proj_archive:'Archive', proj_reopen:'Reopen',
+    proj_tasks:'Tasks', proj_dispatch:'Assign Task', proj_new_task:'New Task',
+    proj_task_type:'Task Type', proj_area:'Area', proj_assign:'Assign To',
+    proj_deadline:'Deadline', proj_quota:'Requirements', proj_no_tasks:'No tasks yet',
+    proj_worker_logs:'Worker Logs', proj_no_logs:'No logs yet',
+    proj_back:'← Back to Projects', task_mark_done:'Mark Done', task_done:'Done',
+    task_pending:'⏳ Pending',
+    /* Rating */
+    rating_title:'Reputation', rating_companies:'Company Ratings', rating_workers:'Worker Ratings',
+    rating_score:'Score', rating_write:'Write Review', rating_submit:'Submit',
+    rating_cancel:'Cancel', rating_window:'Review Window', rating_excellent:'Excellent',
+    rating_good:'Good', rating_avg:'Average', rating_poor:'Poor',
+    /* Profile - worker */
+    prof_title:'My Profile', prof_save:'Save Profile', prof_saved:'Saved!',
+    prof_basic:'Basic Info', prof_name:'Full Name', prof_gender:'Gender',
+    prof_age:'Age', prof_phone:'Phone', prof_email:'Email', prof_address:'Home Address',
+    prof_emergency:'Emergency Contact', prof_city_pref:'City Preference',
+    prof_current_city:'Current City', prof_work_cities:'Preferred Cities',
+    prof_work_info:'Work Info', prof_types:'Trade (multi-select)',
+    prof_experience:'Experience (yrs)', prof_vehicle:'Transport', prof_pay:'Expected Hourly (A$)',
+    prof_pay_unit:'Pay Period', prof_tools:'Tools Owned', prof_docs:'Documents',
+    prof_license:'Licence / Passport', prof_cert:'Work Certificate', prof_cert_desc:'Cert Description',
+    prof_notes:'Other Notes', prof_logout:'Log Out',
+    /* Profile - company */
+    comp_title:'Company Profile', comp_name:'Company Name', comp_cities:'Cities (multi-select)',
+    comp_size:'Company Size', comp_pay_cycle:'Pay Cycle', comp_work_type:'Work Types',
+    comp_types:'Trades Needed', comp_max_pay:'Max Hourly (A$)', comp_min_exp:'Min Experience',
+    comp_desc:'Company Description', comp_save:'Save Company Profile',
+    /* Worker Mgmt */
+    wm_title:'Worker Management', wm_all:'All', wm_add_lookup:'Add by Phone/Username',
+    wm_add_manual:'Enter Manually', wm_add:'Add Worker', wm_search:'Search',
+    wm_not_found:'User not found. Please check phone or username.',
+    wm_add_confirm:'✅ Add to Workers',
+    wm_pending_apps:'Pending Applications', wm_accept:'✅ Accept', wm_reject:'❌ Reject',
+    wm_accept_full:'✅ Accept → Add to Workers', wm_delete:'Delete',
+    wm_edit:'✏️ Edit Info', wm_back:'← Back to Workers',
+    status_active:'Active', status_probation:'Probation', status_inactive:'Inactive',
+    wm_pay:'Pay', wm_joined:'Start Date', wm_contact:'Contact Info',
+    wm_notes:'Notes', wm_save:'Save Changes', wm_add_btn:'Add Worker',
+    /* Recruit */
+    rc_jobs:'Job Posts', rc_apps:'Applications', rc_post:'Post a Job',
+    rc_new_post:'Post New Job', rc_open:'Hiring', rc_closed:'Closed',
+    rc_close_post:'Close', rc_reopen_post:'Reopen', rc_delete:'Delete',
+    rc_pending_apps:' pending', rc_no_jobs:'No jobs posted yet',
+    rc_no_apps:'No pending applications', rc_title:'Job Title', rc_types:'Trades (multi-select)',
+    rc_pay:'Hourly Rate A$', rc_pay_unit:'Pay Period', rc_city:'City',
+    rc_headcount:'Headcount', rc_desc:'Job Description', rc_publish:'Publish Job',
+    rc_apply_for:'Applied for: ', rc_app_type:'🔧 ',
+    /* GPS / Map */
+    nearby_title:'Buildings within 500m', select_location:'Select your clock-in location',
+    selected_change:'Change', no_nearby:'No nearby buildings found',
+    /* Common */
+    workers:'workers', tasks:'tasks', complete:'done', start_date:'started',
+    save:'Save', cancel:'Cancel', delete:'Delete', edit:'Edit',
+    back_list:'← Back', no_data:'No data', loading:'Loading…',
+    male:'Male', female:'Female', yes:'Yes', no:'No', unknown:'—',
+    per_hour:'hr', per_day:'day', per_week:'wk', per_year:'yr',
+    weekly_wed_tue:'Wed to next Tue', no_require:'No requirement', years_above:'+ yrs',
   }
 };
 
 /* Global lang state - persisted */
 var _lang = 'zh';
 try { _lang = localStorage.getItem('__gj_lang__') || 'zh'; } catch(e){}
-function t(key) { return (I18N[_lang]||I18N.zh)[key] || key; }
+function t(key) { if(!I18N||!I18N.zh)return key; return (_lang==='en'?I18N.en:I18N.zh)[key] || I18N.zh[key] || key; }
 function setLang(l) { _lang = l; try { localStorage.setItem('__gj_lang__', l); } catch(e){} }
 
 
@@ -253,7 +382,7 @@ function _exportcsv(){
   rows.push([],['姓名','日期','上班','下班','工时','纬度','经度']);
   ns.forEach(function(n){
     (_MEM.punches[n]||[]).slice().sort(function(a,b){return a.date.localeCompare(b.date);}).forEach(function(r){
-      rows.push([n,r.date,r.inTime||'—',r.outTime||'进行中',(r.hours||0).toFixed(1),r.lat||'—',r.lng||'—']);
+      rows.push([n,r.date,r.inTime||'—',r.outTime||t('in_progress'),(r.hours||0).toFixed(1),r.lat||'—',r.lng||'—']);
     });
   });
   var csv='\uFEFF'+rows.map(function(r){return r.map(function(c){return '"'+String(c||'').replace(/"/g,'""')+'"';}).join(',');}).join('\n');
@@ -940,11 +1069,11 @@ function CheckinPage({role, authUser}) {
           ['今日在场',WDOTS.length+'人','ci-g'],['实时时间',timeStr,''],
           ['本周周期',_wklabel(todayStr),''],['今日日期',now.toLocaleDateString('zh-CN'),'']
         ]:[
-          ['GPS',gpsStatus==='ok'?('✅ 已定位 '+gpsMsg):gpsStatus==='searching'?'🔍 定位中…':'❌ '+gpsMsg,gpsStatus==='ok'?'ci-g':'ci-r'],
+          ['GPS',gpsStatus==='ok'?('✅ 已定位 '+gpsMsg):gpsStatus==='searching'?('🔍 '+t('gps_locating')):'❌ '+gpsMsg,gpsStatus==='ok'?'ci-g':'ci-r'],
           ['地址',address||'—',''],
-          ['今日上班',punchIn||'未打卡',punchIn?'ci-g':''],
-          ['今日下班',punchOut||(punchIn?'进行中':'—'),punchOut?'ci-g':punchIn?'ci-r':''],
-          ['今日工时',tStr||(todayRec?todayRec.hours+'h':'0h'),'']
+          [t('punch_in_time'),punchIn||t('not_checked'),punchIn?'ci-g':''],
+          [t('punch_out_time'),punchOut||(punchIn?t('in_progress'):'—'),punchOut?'ci-g':punchIn?'ci-r':''],
+          [t('hours_today'),tStr||(todayRec?todayRec.hours+'h':'0h'),'']
         ]).map(function(item){return e('div',{key:item[0],className:'ci-row'},e('span',{className:'ci-lbl'},item[0]),e('span',{className:'ci-val '+(item[2]||'')},item[1]));})
       )
     ),
@@ -952,45 +1081,45 @@ function CheckinPage({role, authUser}) {
     !isCompany&&gpsStatus!=='ok'&&e('button',{
       style:{margin:'10px 16px 0',width:'calc(100% - 32px)',padding:12,borderRadius:10,border:'none',background:'var(--b)',color:'#fff',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif",display:'block'},
       onClick:getGPS
-    },gpsStatus==='searching'?'🔍 定位中…':'📡 获取GPS位置'),
+    },gpsStatus==='searching'?('🔍 '+t('gps_locating')):('📡 '+t('gps_get'))),
 
-    !isCompany&&!punchIn&&e('button',{className:'ck-btn ck-in',onClick:doPunchIn},'📥 GPS打卡上班'),
-    !isCompany&&punchIn&&!punchOut&&e('button',{className:'ck-btn ck-out',onClick:doPunchOut},'📤 GPS打卡下班'),
+    !isCompany&&!punchIn&&e('button',{className:'ck-btn ck-in',onClick:doPunchIn},('📥 '+t('punch_in'))),
+    !isCompany&&punchIn&&!punchOut&&e('button',{className:'ck-btn ck-out',onClick:doPunchOut},('📤 '+t('punch_out'))),
     !isCompany&&punchIn&&punchOut&&e('div',{className:'punch-done'},
-      e('div',{style:{fontSize:14,fontWeight:700,color:'var(--g)'}},'✅ 今日打卡完成'),
+      e('div',{style:{fontSize:14,fontWeight:700,color:'var(--g)'}},('✅ '+t('punch_done'))),
       e('div',{style:{fontSize:11,color:'var(--sub)',marginTop:4}},'上班 '+punchIn+' → 下班 '+punchOut+' | '+(todayRec?todayRec.hours:0)+'小时')
     ),
 
     !isCompany&&e('div',{className:'hcard'},
       e('div',{className:'hcard-hd'},'📊 本周工时',e('span',{className:'hcard-wk'},_wklabel(todayStr))),
       e('div',{className:'hrow'},
-        e('div',{className:'hname'},'本周合计'),
+        e('div',{className:'hname'},t('week_total')),
         e('div',{className:'hsub'},'打卡 '+arr0.filter(function(r){return _wklabel(r.date)===_wklabel(todayStr);}).length+' 天'),
         e('div',{className:'hval'},arr0.filter(function(r){return _wklabel(r.date)===_wklabel(todayStr);}).reduce(function(a,r){return a+(r.hours||0);},0).toFixed(1)+'h')
       )
     ),
 
     !isCompany&&recent.length>0&&e('div',{className:'dcard'},
-      e('div',{className:'dcard-hd'},'打卡记录',e('span',{style:{fontSize:10,opacity:0.75}},arr0.length+'天')),
-      recent.map(function(r){return e('div',{key:r.date,className:'drow'},e('div',{className:'ddate'},r.date.slice(5)),e('div',{className:'dinfo'},'上 '+(r.inTime||'—')+'  下 '+(r.outTime||'进行中')),e('div',{className:'dh '+((r.hours||0)>=8?'ok':'')},(r.hours||0).toFixed(1)+'h'));})
+      e('div',{className:'dcard-hd'},t('checkin_records'),e('span',{style:{fontSize:10,opacity:0.75}},arr0.length+'天')),
+      recent.map(function(r){return e('div',{key:r.date,className:'drow'},e('div',{className:'ddate'},r.date.slice(5)),e('div',{className:'dinfo'},'上 '+(r.inTime||'—')+'  下 '+(r.outTime||t('in_progress'))),e('div',{className:'dh '+((r.hours||0)>=8?'ok':'')},(r.hours||0).toFixed(1)+'h'));})
     ),
 
     isCompany&&e('div',{className:'hcard',style:{margin:'10px 16px 0'}},
       e('div',{className:'hcard-hd'},'📊 本周工时汇总',e('span',{className:'hcard-wk'},_wklabel(todayStr))),
       e('div',null,wksum.map(function(w,i){return e('div',{key:w.name,className:'hrow'},e('div',{className:'hav',style:{background:['#d4420a','#1a6b3c','#1a4a8c'][i]}},w.name[0]),e('div',{style:{flex:1}},e('div',{className:'hname'},w.name),e('div',{className:'hsub'},'本周'+w.days+'天')),e('div',{className:'hval'},w.hrs.toFixed(1)+'h'));})),
-      e('div',{className:'hfoot'},e('div',{className:'htot'},'合计 ',e('b',null,wksum.reduce(function(a,w){return a+w.hrs;},0).toFixed(1)+'h')),e('button',{className:'xbtn',onClick:_exportcsv},'📥 导出Excel'))
+      e('div',{className:'hfoot'},e('div',{className:'htot'},'合计 ',e('b',null,wksum.reduce(function(a,w){return a+w.hrs;},0).toFixed(1)+'h')),e('button',{className:'xbtn',onClick:_exportcsv},('📥 '+t('export_excel'))))
     ),
 
     isCompany&&e('div',{style:{padding:'0 16px 14px'}},
-      e('div',{style:{fontSize:11,fontWeight:700,color:'var(--sub)',letterSpacing:1,textTransform:'uppercase',margin:'14px 0 8px'}},'今日打卡'),
+      e('div',{style:{fontSize:11,fontWeight:700,color:'var(--sub)',letterSpacing:1,textTransform:'uppercase',margin:'14px 0 8px'}},t('today_attendance')),
       e('div',{className:'card'},
         [{n:'张建国',t:'电工',c:'#d4420a'},{n:'刘大明',t:'钢筋工',c:'#1a6b3c'},{n:'王建华',t:'水泥工',c:'#1a4a8c'}].map(function(w){
           var rec=null,a=(_MEM.punches&&_MEM.punches[w.n])||[];
           for(var i=0;i<a.length;i++){if(a[i].date===todayStr){rec=a[i];break;}}
           return e('div',{key:w.n,style:{padding:'11px 13px',borderBottom:'1px solid var(--bd)',display:'flex',alignItems:'center',gap:10}},
             e('div',{style:{width:32,height:32,borderRadius:'50%',background:w.c,color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,fontSize:13}},w.n[0]),
-            e('div',{style:{flex:1}},e('div',{style:{fontSize:12,fontWeight:700}},w.n+' · '+w.t),e('div',{style:{fontSize:10,color:'var(--sub)',marginTop:2}},rec?('上班 '+rec.inTime+' — '+(rec.outTime||'进行中')):'未打卡')),
-            rec?e('div',{style:{fontSize:11,fontWeight:700,color:rec.outTime?'var(--b)':'var(--g)',fontFamily:'DM Mono,monospace'}},rec.outTime?rec.hours+'h':'在岗'):e('div',{style:{fontSize:10,color:'var(--sub)'}},'—')
+            e('div',{style:{flex:1}},e('div',{style:{fontSize:12,fontWeight:700}},w.n+' · '+w.t),e('div',{style:{fontSize:10,color:'var(--sub)',marginTop:2}},rec?('上班 '+rec.inTime+' — '+(rec.outTime||t('in_progress'))):t('not_checked'))),
+            rec?e('div',{style:{fontSize:11,fontWeight:700,color:rec.outTime?'var(--b)':'var(--g)',fontFamily:'DM Mono,monospace'}},rec.outTime?rec.hours+'h':t('on_duty')):e('div',{style:{fontSize:10,color:'var(--sub)'}},'—')
           );
         })
       )
@@ -1209,11 +1338,11 @@ function ProjForm({isEdit, projForm, setProjForm, onCancel, onSave, COLORS, ALL_
       })
     ),
     e('div',{className:'pjf-foot'},
-      e('button',{className:'pjf-cancel',onClick:onCancel},'取消'),
+      e('button',{className:'pjf-cancel',onClick:onCancel},t('cancel')),
       e('button',{className:'pjf-ok',onClick:function(){
         if(!local.name||!local.name.trim()||!local.site||!local.site.trim())return;
         onSave(local);
-      }},isEdit?'保存修改':'创建项目')
+      }},isEdit?t('proj_save'):t('proj_create'))
     )
   );
 }
@@ -1289,11 +1418,11 @@ function CompanyDiary() {
     e('style',null,PCSS),
     e('div',{className:'pj-list'},
       e('div',{className:'pj-hd'},
-        e('span',{className:'pj-hd-label'},'项目 / 工地'),
+        e('span',{className:'pj-hd-label'},t('proj_title')),
         e('button',{className:'new-proj-btn',onClick:()=>{
           setProjForm({name:'',site:'',desc:'',color:COLORS[0],workers:[]});
           setView('addProj');
-        }},e('span',null,'＋'),'新增项目')
+        }},e('span',null,'＋'),t('proj_add'))
       ),
       projects.length===0&&e('div',{style:{textAlign:'center',padding:'40px 20px',color:'var(--sub)'}},
         e('div',{style:{fontSize:44,marginBottom:10}},'🏗️'),
@@ -1309,7 +1438,7 @@ function CompanyDiary() {
               e('div',{className:'pj-name'},p.name),
               e('div',{className:'pj-site'},'📍 '+p.site)
             ),
-            e('span',{className:'pj-badge '+(p.status==='active'?'active':'done')},p.status==='active'?'进行中':'已完成')
+            e('span',{className:'pj-badge '+(p.status==='active'?'active':'done')},p.status==='active'?t('in_progress'):t('proj_done'))
           ),
           e('div',{className:'pj-stats'},
             e('div',{className:'pj-stat'},e('b',null,p.workers.length),'人'),
@@ -1320,7 +1449,7 @@ function CompanyDiary() {
           e('div',{className:'pj-acts'},
             e('button',{className:'pj-act pja-edit',onClick:ev=>{ev.stopPropagation();setProjForm({name:p.name,site:p.site,desc:p.desc||'',color:p.color,workers:p.workers||[]});setSelProj(p);setView('editProj');}},'✏️ 修改项目'),
             e('button',{className:'pj-act pja-task',onClick:ev=>{ev.stopPropagation();setSelProj(p);setView('detail');setShowTaskForm(true);}},'＋ 派发任务'),
-            e('button',{className:'pj-act pja-del',onClick:ev=>{ev.stopPropagation();saveProjects(projects.filter(x=>x.id!==p.id));}},'删除')
+            e('button',{className:'pj-act pja-del',onClick:ev=>{ev.stopPropagation();saveProjects(projects.filter(x=>x.id!==p.id));}},t('delete'))
           )
         );
       })
@@ -1332,7 +1461,7 @@ function CompanyDiary() {
     e('style',null,PCSS),
     e('div',{style:{display:'flex',alignItems:'center',gap:10,padding:'14px 16px 0'}},
       e('button',{style:{background:'none',border:'none',fontSize:22,cursor:'pointer',color:'var(--sub)'},onClick:()=>setView('list')},'←'),
-      e('div',{style:{fontSize:16,fontWeight:900}},'新增项目')
+      e('div',{style:{fontSize:16,fontWeight:900}},t('proj_add'))
     ),
     e(ProjForm,{isEdit:false,projForm,setProjForm,COLORS,ALL_WORKERS,
       onCancel:()=>setView('list'),
@@ -1342,7 +1471,7 @@ function CompanyDiary() {
     e('style',null,PCSS),
     e('div',{style:{display:'flex',alignItems:'center',gap:10,padding:'14px 16px 0'}},
       e('button',{style:{background:'none',border:'none',fontSize:22,cursor:'pointer',color:'var(--sub)'},onClick:()=>setView('list')},'←'),
-      e('div',{style:{fontSize:16,fontWeight:900}},'修改项目信息')
+      e('div',{style:{fontSize:16,fontWeight:900}},t('proj_edit_info'))
     ),
     e(ProjForm,{isEdit:true,projForm,setProjForm,COLORS,ALL_WORKERS,
       onCancel:()=>setView('list'),
@@ -1357,7 +1486,7 @@ function CompanyDiary() {
     return e('div',{className:'page'},
       e('style',null,PCSS),
       e('div',{className:'pd-hd'},
-        e('button',{className:'pd-back',onClick:()=>setView('list')},'← 返回项目列表'),
+        e('button',{className:'pd-back',onClick:()=>setView('list')},t('proj_back')),
         e('div',{className:'pd-title'},proj.name),
         e('div',{className:'pd-site'},'📍 '+proj.site+(proj.desc?' · '+proj.desc:'')),
         e('div',{className:'pd-row'},
@@ -1372,7 +1501,7 @@ function CompanyDiary() {
         e('button',{style:{padding:'8px 12px',borderRadius:8,border:'none',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif",
           background:proj.status==='active'?'#fff0ec':'#e8f5ee',color:proj.status==='active'?'var(--r)':'var(--g)'},
           onClick:()=>saveProjects(projects.map(p=>p.id===proj.id?{...p,status:p.status==='active'?'done':'active'}:p))},
-          proj.status==='active'?'归档':'重开')
+          proj.status==='active'?t('proj_archive'):t('proj_reopen'))
       ),
       e('div',{style:{padding:'0 16px'}},
         e('div',{style:{fontSize:11,fontWeight:700,color:'var(--sub)',letterSpacing:1,textTransform:'uppercase',margin:'14px 0 8px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
@@ -1381,7 +1510,7 @@ function CompanyDiary() {
             onClick:()=>{setTaskForm({name:'',area:'',quota:'',assignTo:'',dueTime:'18:00'});setEditTaskId(null);setShowTaskForm(true);}},'＋ 派发任务')
         ),
         showTaskForm&&e('div',{className:'atf',style:{marginBottom:10}},
-          e('div',{className:'atf-title'},editTaskId?'✏️ 编辑任务':'➕ 派发新任务'),
+          e('div',{className:'atf-title'},editTaskId?'✏️ 编辑任务':('➕ '+t('proj_new_task'))),
           e('select',{className:'atf-sel',style:{width:'100%',marginBottom:6},value:taskForm.name,onChange:ev=>setTaskForm(f=>({...f,name:ev.target.value}))},
             e('option',{value:''},'选择工作类型 *'),
             TASK_TYPES.map(o=>e('option',{key:o},o))
@@ -1396,7 +1525,7 @@ function CompanyDiary() {
           ),
           e('textarea',{className:'atf-ta',placeholder:'达标要求（选填）',value:taskForm.quota,onChange:ev=>setTaskForm(f=>({...f,quota:ev.target.value}))}),
           e('div',{className:'atf-foot'},
-            e('button',{className:'atf-cancel',onClick:()=>{setShowTaskForm(false);setEditTaskId(null);}},'取消'),
+            e('button',{className:'atf-cancel',onClick:()=>{setShowTaskForm(false);setEditTaskId(null);}},t('cancel')),
             e('button',{className:'atf-ok',onClick:()=>{
               if(!taskForm.name)return;
               const newTasks = editTaskId
@@ -1407,7 +1536,7 @@ function CompanyDiary() {
             }},editTaskId?'保存':'派发')
           )
         ),
-        projTasks.length===0&&!showTaskForm&&e('div',{style:{padding:'12px 0',textAlign:'center',color:'var(--sub)',fontSize:12}},'暂无任务，点击上方派发'),
+        projTasks.length===0&&!showTaskForm&&e('div',{style:{padding:'12px 0',textAlign:'center',color:'var(--sub)',fontSize:12}},t('proj_no_tasks')),
         projTasks.map(t=>e('div',{key:t.id,className:'ptask'},
           e('div',{className:'ptask-hd'},
             e('div',{className:'ptask-bar',style:{background:t.color||proj.color}}),
@@ -1419,20 +1548,20 @@ function CompanyDiary() {
             e('div',{className:'ptask-acts'},
               e('button',{className:'ptask-btn ptask-edit',onClick:()=>{setTaskForm({name:t.name,area:t.area||'',quota:t.quota||'',assignTo:t.assignTo||'',dueTime:t.dueTime||'18:00'});setEditTaskId(t.id);setShowTaskForm(true);}},'编辑'),
               e('button',{className:'ptask-btn',style:{background:t.done?'#e8f5ee':'#e8f0ff',color:t.done?'var(--g)':'var(--b)'},
-                onClick:()=>{setProjTasks(proj.id,projTasks.map(x=>x.id===t.id?{...x,done:!x.done}:x));}},(t.done?'✅':'○')+' '+(t.done?'已完成':'标完成')),
-              e('button',{className:'ptask-btn ptask-del',onClick:()=>setProjTasks(proj.id,projTasks.filter(x=>x.id!==t.id))},'删除')
+                onClick:()=>{setProjTasks(proj.id,projTasks.map(x=>x.id===t.id?{...x,done:!x.done}:x));}},(t.done?'✅':'○')+' '+(t.done?t('proj_done'):t('task_mark_done'))),
+              e('button',{className:'ptask-btn ptask-del',onClick:()=>setProjTasks(proj.id,projTasks.filter(x=>x.id!==t.id))},t('delete'))
             )
           ),
           e('div',{className:'ptask-ft'},
             e('span',{style:{color:'var(--sub)'}},'指派：',e('b',{style:{color:'var(--b)'}},t.assignTo||'未指派')),
             e('span',{style:{color:'var(--sub)'}},'截止 '+t.dueTime),
             t.done?e('span',{style:{marginLeft:'auto',fontSize:10,color:'var(--g)',fontWeight:700}},'✅ 已完成')
-                  :e('span',{style:{marginLeft:'auto',fontSize:10,color:'var(--r)',fontWeight:600}},'⏳ 待完成')
+                  :e('span',{style:{marginLeft:'auto',fontSize:10,color:'var(--r)',fontWeight:600}},t('task_pending'))
           )
         ))
       ),
       e('div',{style:{padding:'0 16px 20px'}},
-        e('div',{style:{fontSize:11,fontWeight:700,color:'var(--sub)',letterSpacing:1,textTransform:'uppercase',margin:'14px 0 8px'}},'📋 工人日志'),
+        e('div',{style:{fontSize:11,fontWeight:700,color:'var(--sub)',letterSpacing:1,textTransform:'uppercase',margin:'14px 0 8px'}},('📋 '+t('proj_worker_logs'))),
         logs.length===0&&e('div',{style:{textAlign:'center',padding:16,color:'var(--sub)',fontSize:12}},'暂无日志'),
         logs.map(log=>{
           const done=log.tasks.filter(t=>t.done).length;
@@ -1459,7 +1588,7 @@ function CompanyDiary() {
       )
     );
   }
-  return e('div',{className:'page'},e('div',{style:{padding:20,color:'var(--sub)'}},'加载中…'));
+  return e('div',{className:'page'},e('div',{style:{padding:20,color:'var(--sub)'}},t('loading')));
 }
 
 
@@ -1486,7 +1615,7 @@ function RatingPage({role}) {
     ...[1,2,3,4,5].map(n=>e('button',{key:n,className:'star-btn',onClick:()=>setFormDims(p=>({...p,[dimKey]:n}))},
       e('span',{style:{color:n<=(formDims[dimKey]||0)?'#f5a623':'#d4cfc4'}},'★')
     )),
-    formDims[dimKey]>0&&e('span',{style:{fontSize:11,color:'var(--sub)',marginLeft:4}},['','很差','较差','一般','良好','非常好'][formDims[dimKey]])
+    formDims[dimKey]>0&&e('span',{style:{fontSize:11,color:'var(--sub)',marginLeft:4}},['','很差',t('rating_poor'),t('rating_avg'),t('rating_good'),'非常好'][formDims[dimKey]])
   );
 
   return e('div',{className:'page'},
@@ -1602,7 +1731,7 @@ function RatingPage({role}) {
             e('textarea',{className:'rf-ta',placeholder:'分享您的真实用工体验…',value:formText,onChange:ev=>setFormText(ev.target.value)})
           )
         ),
-        e('div',{className:'rf-foot'},e('button',{className:'rf-cancel',onClick:()=>setRatingTarget(null)},'取消'),e('button',{className:'rf-submit',onClick:submitC},'提交评价'))
+        e('div',{className:'rf-foot'},e('button',{className:'rf-cancel',onClick:()=>setRatingTarget(null)},t('cancel')),e('button',{className:'rf-submit',onClick:submitC},t('rating_submit')))
       )
     ),
 
@@ -1627,7 +1756,7 @@ function RatingPage({role}) {
             e('textarea',{className:'rf-ta',placeholder:'对该工人的综合评价…',value:formText,onChange:ev=>setFormText(ev.target.value)})
           )
         ),
-        e('div',{className:'rf-foot'},e('button',{className:'rf-cancel',onClick:()=>setEditingW(null)},'取消'),e('button',{className:'rf-submit',onClick:submitW},'提交评价'))
+        e('div',{className:'rf-foot'},e('button',{className:'rf-cancel',onClick:()=>setEditingW(null)},t('cancel')),e('button',{className:'rf-submit',onClick:submitW},t('rating_submit')))
       )
     )
   );
@@ -1698,8 +1827,8 @@ function ProfilePage(props) {
         e('div',{className:'fg'},e('label',{className:'fl'},'公司简介'),e('textarea',{className:'fi',style:{minHeight:64,resize:'none',outline:'none'},value:d.desc||'',onChange:ev=>setF('desc',ev.target.value),placeholder:'公司背景、项目类型、福利待遇…'}))
       )
     ),
-    e('button',{className:`save-btn ${saved?'saved':''}`,onClick:save},saved?'✅ 已保存！':'保存资料'),
-    e('button',{onClick:()=>{if(typeof props.onLogout==='function')props.onLogout();},style:{margin:'0 16px 24px',width:'calc(100% - 32px)',padding:'12px',borderRadius:10,border:'1px solid var(--bd)',background:'var(--s3)',color:'var(--sub)',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"}},'退出登录')
+    e('button',{className:`save-btn ${saved?'saved':''}`,onClick:save},saved?('✅ '+t('prof_saved')):t('prof_save')),
+    e('button',{onClick:()=>{if(typeof props.onLogout==='function')props.onLogout();},style:{margin:'0 16px 24px',width:'calc(100% - 32px)',padding:'12px',borderRadius:10,border:'1px solid var(--bd)',background:'var(--s3)',color:'var(--sub)',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"}},t('prof_logout'))
   );
 }
 
@@ -1978,9 +2107,9 @@ function _saveRoster(){try{localStorage.setItem('__gj_roster__',JSON.stringify(_
 
 function WorkerMgmtPage() {
   const STATUS_OPTS = [
-    {key:'active',   label:'在职', bg:'#e8f5ee', color:'var(--g)'},
-    {key:'probation',label:'入职', bg:'#e8f0ff', color:'var(--b)'},
-    {key:'inactive', label:'停职', bg:'#fff0ec', color:'var(--r)'},
+    {key:'active',   label:t('status_active'), bg:'#e8f5ee', color:'var(--g)'},
+    {key:'probation',label:t('status_probation'), bg:'#e8f0ff', color:'var(--b)'},
+    {key:'inactive', label:t('status_inactive'), bg:'#fff0ec', color:'var(--r)'},
   ];
   const TYPE_OPTS = ['做墙铁','做顶铁','Tbar','做木板','做外墙铁','做外墙板','打胶','铺棉','钉板','抹灰','蹭灰','杂工','管工','电工','水泥工','钢筋工','木工','管工'];
 
@@ -2045,11 +2174,11 @@ function WorkerMgmtPage() {
     ),
     e('div',{className:'wm-list'},
       e('div',{style:{display:'flex',gap:8,marginBottom:0}},
-        e('button',{className:'wm-add-btn',style:{flex:1},onClick:()=>{setView('lookup');}},'📱 添加工人（手机号/账号）'),
+        e('button',{className:'wm-add-btn',style:{flex:1},onClick:()=>{setView('lookup');}},('📱 '+t('wm_add_lookup'))),
         e('button',{className:'wm-add-btn',style:{flex:1},onClick:()=>{
           setForm({name:'',phone:'',email:'',type:'做墙铁',status:'probation',pay:'',payUnit:'时',joined:new Date().toISOString().slice(0,10),abn:'',address:'',emergency:'',notes:'',gender:'男',age:''});
           setView('add');
-        }},'📝 手动填写')
+        }},('📝 '+t('wm_add_manual')))
       ),
       filtered.length===0&&e('div',{style:{textAlign:'center',padding:'30px 0',color:'var(--sub)',fontSize:13}},'暂无工人'),
       filtered.map(w=>{
@@ -2083,7 +2212,7 @@ function WorkerMgmtPage() {
     return e('div',{className:'page'},
       e('style',null,WCSS),
       e('div',{className:'wd-hd'},
-        e('button',{className:'wd-back',onClick:()=>setView('list')},'← 返回工人列表'),
+        e('button',{className:'wd-back',onClick:()=>setView('list')},t('wm_back')),
         e('div',{className:'wd-av',style:{background:getColor(w.id)}},w.name[0]),
         e('div',{className:'wd-name'},w.name),
         e('div',{className:'wd-meta'},w.type+' · '+(w.gender||'')+(w.age?' · '+w.age+'岁':'')),
@@ -2113,9 +2242,9 @@ function WorkerMgmtPage() {
       ),
       e('div',{style:{display:'flex',gap:8,padding:'14px 16px'}},
         e('button',{style:{flex:1,padding:11,borderRadius:9,border:'none',background:'#e8f0ff',color:'var(--b)',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"},
-          onClick:()=>{setForm({...w});setView('edit');}},'✏️ 编辑信息'),
+          onClick:()=>{setForm({...w});setView('edit');}},t('wm_edit')),
         e('button',{style:{padding:'11px 14px',borderRadius:9,border:'none',background:'#fff0ec',color:'var(--r)',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"},
-          onClick:()=>{if(confirm('确认删除该工人？')){saveRoster(roster.filter(x=>x.id!==w.id));setView('list');}}},'删除')
+          onClick:()=>{if(confirm('确认删除该工人？')){saveRoster(roster.filter(x=>x.id!==w.id));setView('list');}}},t('delete'))
       )
     );
   }
@@ -2136,7 +2265,7 @@ function WorkerMgmtPage() {
       e('style',null,WCSS),
       e('div',{style:{display:'flex',alignItems:'center',gap:10,padding:'14px 16px 0'}},
         e('button',{style:{background:'none',border:'none',fontSize:22,cursor:'pointer',color:'var(--sub)'},onClick:()=>setView('list')},'←'),
-        e('div',{style:{fontSize:16,fontWeight:900}},'添加工人')
+        e('div',{style:{fontSize:16,fontWeight:900}},t('wm_add_btn'))
       ),
       e('div',{style:{padding:'14px 16px'}},
         e('div',{style:{fontSize:12,color:'var(--sub)',marginBottom:12,lineHeight:1.6}},'输入工人在工匠通上注册的手机号或账号，即可快速添加到工人管理列表。'),
@@ -2213,7 +2342,7 @@ function WorkerMgmtPage() {
                     _saveApps();
                     setRoster([...roster]);
                   }
-                },'❌ 拒绝')
+                },t('wm_reject'))
               )
             );
           })
@@ -2278,12 +2407,12 @@ function WorkerMgmtPage() {
               setView('list');
             }
           }
-        },isEdit?'保存修改':'添加工人')
+        },isEdit?t('proj_save'):t('wm_add_btn'))
       )
     );
   }
 
-  return e('div',{className:'page'},e('div',{style:{padding:20}},'加载中…'));
+  return e('div',{className:'page'},e('div',{style:{padding:20}},t('loading')));
 }
 
 /* ════════════════════════════
@@ -2394,16 +2523,16 @@ function RecruitPage() {
           var np={id:Date.now(),...form,createdAt:new Date().toISOString().slice(0,10)};
           savePosts([...posts,np]);setView('list');
         }
-      },'发布职位')
+      },t('rc_publish'))
     )
   );
 
   return e('div',{className:'page'},
     e('style',null,RCSS),
     e('div',{className:'rc-tabs'},
-      e('button',{className:'rc-tab '+(rcTab==='posts'?'on':''),onClick:()=>setRcTab('posts')},'📋 职位管理'),
+      e('button',{className:'rc-tab '+(rcTab==='posts'?'on':''),onClick:()=>setRcTab('posts')},('📋 '+t('rc_jobs'))),
       e('button',{className:'rc-tab '+(rcTab==='apps'?'on':''),onClick:()=>{setRcTab('apps');refreshApps();}},
-        '📥 申请审核',
+        ('📥 '+t('rc_apps')),
         pendingCount>0&&e('span',{className:'rc-badge'},pendingCount)
       )
     ),
@@ -2412,8 +2541,8 @@ function RecruitPage() {
       e('button',{className:'rc-add-btn',onClick:()=>{
         setForm({title:'',types:[],pay:'',payUnit:'时',city:'悉尼',headcount:1,desc:'',status:'open'});
         setView('addPost');
-      }},'＋ 发布新职位'),
-      posts.length===0&&e('div',{style:{textAlign:'center',padding:'30px 0',color:'var(--sub)',fontSize:13}},'暂无职位，点击上方发布'),
+      }},('＋ '+t('rc_new_post'))),
+      posts.length===0&&e('div',{style:{textAlign:'center',padding:'30px 0',color:'var(--sub)',fontSize:13}},t('rc_no_jobs')),
       posts.map(p=>e('div',{key:p.id,className:'rc-card'},
         e('div',{className:'rc-card-hd'},
           e('div',{className:'rc-card-title'},p.title),
@@ -2426,15 +2555,15 @@ function RecruitPage() {
           p.desc&&e('div',{className:'rc-card-desc'},p.desc)
         ),
         e('div',{className:'rc-card-ft'},
-          e('span',{className:'rc-status '+(p.status==='open'?'rcs-open':'rcs-closed')},p.status==='open'?'招募中':'已关闭'),
+          e('span',{className:'rc-status '+(p.status==='open'?'rcs-open':'rcs-closed')},p.status==='open'?t('rc_open'):t('rc_closed')),
           e('span',{style:{fontSize:11,color:'var(--sub)',flex:1,marginLeft:8}},
             (apps||[]).filter(a=>a.jobId===p.id&&a.status==='pending').length+' 人待审'),
           e('button',{style:{padding:'5px 10px',borderRadius:6,border:'none',fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif",
             background:p.status==='open'?'#fff0ec':'#e8f5ee',color:p.status==='open'?'var(--r)':'var(--g)'},
             onClick:()=>savePosts(posts.map(x=>x.id===p.id?{...x,status:x.status==='open'?'closed':'open'}:x))},
-            p.status==='open'?'关闭':'重开'),
+            p.status==='open'?'关闭':t('proj_reopen')),
           e('button',{style:{padding:'5px 10px',borderRadius:6,border:'none',background:'#fff0ec',color:'var(--r)',fontSize:11,fontWeight:700,cursor:'pointer',marginLeft:6,fontFamily:"'Noto Sans SC',sans-serif"},
-            onClick:()=>savePosts(posts.filter(x=>x.id!==p.id))},'删除')
+            onClick:()=>savePosts(posts.filter(x=>x.id!==p.id))},t('delete'))
         )
       ))
     ),
@@ -2443,7 +2572,7 @@ function RecruitPage() {
       (apps||[]).filter(a=>a.status==='pending').length===0
         &&e('div',{style:{textAlign:'center',padding:'30px 0',color:'var(--sub)'}},
           e('div',{style:{fontSize:36,marginBottom:8}},'📭'),
-          e('div',{style:{fontSize:13}},'暂无待审核申请')
+          e('div',{style:{fontSize:13}},t('rc_no_apps'))
         ),
       (apps||[]).filter(a=>a.status==='pending').map(a=>e('div',{key:a.id,className:'app-card'},
         e('div',{className:'app-hd'},
@@ -2475,14 +2604,14 @@ function RecruitPage() {
               _saveApps();
               refreshApps();
             }
-          },'✅ 录取 → 加入工人管理'),
+          },t('wm_accept_full')),
           e('button',{className:'app-reject',
             onClick:()=>{
               _MEM.applications=(_MEM.applications||[]).map(x=>x.id===a.id?{...x,status:'rejected'}:x);
               _saveApps();
               refreshApps();
             }
-          },'❌ 拒绝')
+          },t('wm_reject'))
         )
       ))
     )
@@ -2492,21 +2621,21 @@ function RecruitPage() {
 /* ════════════════════════════
    APP ROOT
 ════════════════════════════ */
-const TABS_WORKER = [
-  {key:'match',icon:'🎯',label:'找工作'},
-  {key:'checkin',icon:'📍',label:'签到'},
-  {key:'diary',icon:'📝',label:'日志'},
-  {key:'rating',icon:'⭐',label:'信誉'},
-  {key:'profile',icon:'👤',label:'我的'},
-];
-const TABS_COMPANY = [
-  {key:'checkin',icon:'📍',label:'工人位置'},
-  {key:'diary',icon:'📝',label:'项目管理'},
-  {key:'recruit',icon:'📋',label:'招聘'},
-  {key:'workers',icon:'👷',label:'工人管理'},
-  {key:'rating',icon:'⭐',label:'信誉'},
-  {key:'profile',icon:'👤',label:'公司资料'},
-];
+function TABS_WORKER() { return [
+  {key:'match',icon:'🎯',label:t('tab_match')},
+  {key:'checkin',icon:'📍',label:t('tab_checkin')},
+  {key:'diary',icon:'📝',label:t('tab_diary')},
+  {key:'rating',icon:'⭐',label:t('tab_rating')},
+  {key:'profile',icon:'👤',label:t('tab_profile')},
+];}
+function TABS_COMPANY() { return [
+  {key:'checkin',icon:'📍',label:t('tab_location')},
+  {key:'diary',icon:'📝',label:t('tab_project')},
+  {key:'recruit',icon:'📋',label:t('tab_recruit')},
+  {key:'workers',icon:'👷',label:t('tab_workers')},
+  {key:'rating',icon:'⭐',label:t('tab_rating')},
+  {key:'profile',icon:'👤',label:t('tab_company_profile')},
+];}
 
 function App() {
   // Auth state
@@ -2594,7 +2723,7 @@ function App() {
   if(!authUser) return e('div',null,e('style',null,AUTH_CSS),e(WelcomeScreen,{onLogin:()=>setAuthScreen('login'),onRegister:(r)=>{setInitRole(r);setAuthScreen('register');}}));
   const role = authUser ? authUser.role : 'worker';
   const isWorker = role === 'worker';
-  const TABS = isWorker ? TABS_WORKER : TABS_COMPANY;
+  const TABS = isWorker ? TABS_WORKER() : TABS_COMPANY();
 
   // Ensure tab is valid for current role
   const validTab = TABS.find(t=>t.key===tab) ? tab : TABS[0].key;
