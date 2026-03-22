@@ -755,6 +755,9 @@ function CheckinPage({role, authUser}) {
   const [gpsCoords,setGpsCoords] = useState(null);
   const [gpsMsg,setGpsMsg] = useState('点击按钮定位');
   const [address,setAddress] = useState('');
+  const [nearbyPlaces,setNearbyPlaces] = useState([]);
+  const [selPlace,setSelPlace] = useState(null);
+  const [showPlaces,setShowPlaces] = useState(false);
   const [punchIn,setPunchIn] = useState(null);
   const [punchOut,setPunchOut] = useState(null);
   const [timer,setTimer] = useState(0);
@@ -785,6 +788,7 @@ function CheckinPage({role, authUser}) {
         var lat=pos.coords.latitude.toFixed(5), lng=pos.coords.longitude.toFixed(5);
         setGpsCoords({lat:lat,lng:lng});
         setGpsMsg('±'+Math.round(pos.coords.accuracy)+'m');
+        // Reverse geocode address
         fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+lat+'&lon='+lng+'&accept-language=zh')
           .then(function(r){return r.json();})
           .then(function(d){
@@ -795,6 +799,34 @@ function CheckinPage({role, authUser}) {
                        +((a.city||a.town||a.county)?', '+(a.city||a.town||a.county):'');
               setAddress(short||d.display_name.split(',').slice(0,3).join(','));
             }
+          }).catch(function(){});
+        // Fetch nearby buildings/places via Overpass API (500m radius)
+        var overpassQuery='[out:json][timeout:10];(node["name"]["amenity"](around:500,'+lat+','+lng+');node["name"]["building"](around:500,'+lat+','+lng+');node["name"]["shop"](around:500,'+lat+','+lng+');node["name"]["office"](around:500,'+lat+','+lng+');way["name"]["building"](around:500,'+lat+','+lng+'););out center 30;';
+        fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:overpassQuery})
+          .then(function(r){return r.json();})
+          .then(function(d){
+            if(!d||!d.elements)return;
+            var seen={};
+            var places=d.elements
+              .filter(function(el){return el.tags&&el.tags.name;})
+              .map(function(el){
+                var elLat=el.lat||(el.center&&el.center.lat)||lat;
+                var elLng=el.lon||(el.center&&el.center.lon)||lng;
+                var dlat=elLat-parseFloat(lat), dlng=elLng-parseFloat(lng);
+                var dist=Math.round(Math.sqrt(dlat*dlat+dlng*dlng)*111000);
+                var type=el.tags.amenity||el.tags.building||el.tags.shop||el.tags.office||'建筑';
+                var typeMap={'construction_site':'工地','offices':'办公楼','office':'办公楼','apartments':'公寓','residential':'住宅','warehouse':'仓库','industrial':'工厂','school':'学校','hospital':'医院','restaurant':'餐厅','shop':'商店','supermarket':'超市','convenience':'便利店','mall':'购物中心','yes':'建筑'};
+                var typeZh=typeMap[type]||type;
+                return {name:el.tags.name,dist:dist,type:typeZh,lat:elLat,lng:elLng};
+              })
+              .filter(function(p){
+                if(seen[p.name])return false;
+                seen[p.name]=1;return true;
+              })
+              .sort(function(a,b){return a.dist-b.dist;})
+              .slice(0,12);
+            setNearbyPlaces(places);
+            if(places.length>0)setShowPlaces(true);
           }).catch(function(){});
       },
       function(err){
@@ -813,7 +845,7 @@ function CheckinPage({role, authUser}) {
     if(!_MEM.punches[wname])_MEM.punches[wname]=[];
     var arr=_MEM.punches[wname],idx=-1;
     for(var i=0;i<arr.length;i++){if(arr[i].date===todayStr){idx=i;break;}}
-    var rec={date:todayStr,inTime:t,outTime:null,hours:0,lat:gpsCoords?gpsCoords.lat:null,lng:gpsCoords?gpsCoords.lng:null};
+    var rec={date:todayStr,inTime:t,outTime:null,hours:0,lat:gpsCoords?gpsCoords.lat:null,lng:gpsCoords?gpsCoords.lng:null,place:selPlace?selPlace.name:address||null};
     if(idx>=0)arr[idx]=rec;else arr.push(rec);
     _savep();
   }
@@ -897,6 +929,47 @@ function CheckinPage({role, authUser}) {
       )
     ),
     !isCompany&&gpsStatus!=='ok'&&e('button',{className:'gps-req-btn',onClick:getGPS},gpsStatus==='searching'?'🔍 定位中…':'📡 获取GPS位置'),
+
+    !isCompany&&gpsStatus==='ok'&&selPlace&&e('div',{className:'selected-place'},
+      e('span',{className:'sp-icon'},'🏗️'),
+      e('div',{style:{flex:1}},
+        e('div',{className:'sp-name'},selPlace.name),
+        e('div',{className:'sp-dist'},selPlace.type+' · '+selPlace.dist+'m')
+      ),
+      e('button',{className:'sp-change',onClick:function(){setShowPlaces(true);}}, '更换')
+    ),
+
+    !isCompany&&gpsStatus==='ok'&&!selPlace&&nearbyPlaces.length>0&&e('div',{
+      style:{margin:'10px 16px 0',padding:'9px 13px',background:'#fff8e0',border:'1px solid #f5d76e',borderRadius:9,fontSize:11,color:'#8a6000',display:'flex',alignItems:'center',gap:7}
+    },
+      e('span',null,'⬇️'),
+      e('span',null,'请选择您的打卡地点')
+    ),
+
+    !isCompany&&gpsStatus==='ok'&&(showPlaces||(!selPlace&&nearbyPlaces.length>0))&&e('div',{className:'places-card'},
+      e('div',{className:'places-hd'},
+        e('span',null,'📍 附近500米内建筑物'),
+        e('span',{className:'places-sub'},nearbyPlaces.length+'个地点')
+      ),
+      nearbyPlaces.length===0
+        ? e('div',{className:'places-loading'},'🔍 正在搜索附近建筑物…')
+        : nearbyPlaces.map(function(p){
+            var icons={'工地':'🏗️','办公楼':'🏢','公寓':'🏠','住宅':'🏘️','仓库':'🏭','工厂':'🏭','学校':'🏫','医院':'🏥','餐厅':'🍽️','商店':'🛒','超市':'🛒','便利店':'🏪','购物中心':'🏬','建筑':'🏗️'};
+            var icon=icons[p.type]||'📍';
+            var isSel=selPlace&&selPlace.name===p.name;
+            return e('div',{key:p.name,className:'place-item'+(isSel?' sel':''),
+              onClick:function(){setSelPlace(p);setShowPlaces(false);}},
+              e('div',{className:'place-icon'+(isSel?' sel':'')},
+                e('span',{style:{fontSize:isSel?16:18}},isSel?'✅':icon)
+              ),
+              e('div',{style:{flex:1}},
+                e('div',{className:'place-name'},p.name),
+                e('div',{className:'place-type'},p.type)
+              ),
+              e('div',{className:'place-dist'},p.dist+'m')
+            );
+          })
+    ),
     !isCompany&&!punchIn&&e('button',{className:'ck-btn ck-in',onClick:doPunchIn},'📥 GPS打卡上班'),
     !isCompany&&punchIn&&!punchOut&&e('button',{className:'ck-btn ck-out',onClick:doPunchOut},'📤 GPS打卡下班'),
     !isCompany&&punchIn&&punchOut&&e('div',{className:'punch-done'},
