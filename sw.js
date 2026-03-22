@@ -1,5 +1,9 @@
-const CACHE = 'gj-v3';
-const CORE = ['/', '/index.html', '/manifest.json'];
+const CACHE = 'gj-v4';
+const CORE = [
+  '/gongjiang-app/',
+  '/gongjiang-app/index.html',
+  '/gongjiang-app/manifest.json'
+];
 
 self.addEventListener('install', ev => {
   self.skipWaiting();
@@ -22,7 +26,7 @@ self.addEventListener('fetch', ev => {
           caches.open(CACHE).then(c => c.put(ev.request, resp.clone()));
         }
         return resp;
-      }).catch(() => caches.match('/index.html'));
+      }).catch(() => caches.match('/gongjiang-app/index.html'));
     })
   );
 });

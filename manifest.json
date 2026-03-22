@@ -2,8 +2,8 @@
   "name": "工匠通",
   "short_name": "工匠通",
   "description": "建筑工人智慧用工平台 — 找工作、GPS签到、工作日志、信誉评级",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "/gongjiang-app/",
+  "scope": "/gongjiang-app/",
   "display": "standalone",
   "orientation": "portrait",
   "theme_color": "#1a1714",
@@ -31,15 +31,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "工匠通主界面"
     }
   ]
 }
