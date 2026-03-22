@@ -2804,11 +2804,11 @@ function App() {
           onClick:()=>setTab('profile')},avatarName)
       )
     ),
-    e('div',{key:lang,style:{flex:1,overflow:'auto',minHeight:0}},pages[validTab]),
+    pages[validTab],
     e('div', {className:'bottom-nav'},
-      ...TABS.map(t =>
-        e('button', {key:t.key, className:`nb ${validTab===t.key?'on':''}`, onClick:()=>setTab(t.key)},
-          e('span', {className:'nb-icon'}, t.icon),
+      ...TABS.map(tab =>
+        e('button', {key:tab.key, className:`nb ${validTab===tab.key?'on':''}`, onClick:()=>setTab(tab.key)},
+          e('span', {className:'nb-icon'}, tab.icon),
           t.label
         )
       )
@@ -2824,6 +2824,11 @@ window.addEventListener('unhandledrejection', function(ev){
   console.error('Unhandled promise:', ev.reason);
 });
 ReactDOM.createRoot(document.getElementById('root')).render(e(App));
+// Safety: remove splash after 3s regardless
+setTimeout(function(){
+  var s=document.getElementById('splash');
+  if(s){s.style.opacity='0';setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s);},400);}
+},3000);
 </script>
 </body>
 </html>
