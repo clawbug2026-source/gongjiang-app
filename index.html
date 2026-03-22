@@ -2826,11 +2826,11 @@ window.addEventListener('unhandledrejection', function(ev){
   console.error('Unhandled promise:', ev.reason);
 });
 ReactDOM.createRoot(document.getElementById('root')).render(e(App));
-// Safety: remove splash after 3s regardless
+// Remove splash at 1.5s regardless of React status
 setTimeout(function(){
   var s=document.getElementById('splash');
-  if(s){s.style.opacity='0';setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s);},400);}
-},3000);
+  if(s){s.style.transition='opacity 0.3s';s.style.opacity='0';setTimeout(function(){if(s&&s.parentNode)s.parentNode.removeChild(s);},350);}
+},1500);
 </script>
 </body>
 </html>
