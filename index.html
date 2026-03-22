@@ -122,6 +122,8 @@ const _MEM = { users: [], current: null, punches: {}, projects: [], projectTasks
     if(pj) _MEM.projects=JSON.parse(pj);
     if(pt) _MEM.projectTasks=JSON.parse(pt);
   } catch(e) {}
+  if(!_MEM.applications) _MEM.applications = [];
+  try{var _ap=localStorage.getItem('__gj_apps__');if(_ap)_MEM.applications=JSON.parse(_ap);}catch(e){}
   if(!_MEM.projects.length) _MEM.projects=[
     {id:1,name:'恒大·龙湾A栋',site:'恒大·龙湾',status:'active',color:'#d4420a',workers:['张建国','刘大明','王建华'],startDate:'2024-03-01',desc:'外墙及内装修'},
     {id:2,name:'绿地中心B座',site:'绿地中心',status:'active',color:'#1a4a8c',workers:['张建国','陈师傅'],startDate:'2024-03-10',desc:'顶铁墙铁安装'},
@@ -132,6 +134,7 @@ function getCurrentUser(){return _MEM.current;}
 function setCurrentUser(u){_MEM.current=u;try{localStorage.setItem('__gj_current__',JSON.stringify(u));}catch(e){}}
 function logout(){_MEM.current=null;try{localStorage.removeItem('__gj_current__');}catch(e){}}
 
+function _saveApps(){try{localStorage.setItem('__gj_apps__',JSON.stringify(_MEM.applications||[]));}catch(e){}}
 function _savep(){try{localStorage.setItem('__gj_p__',JSON.stringify(_MEM.punches));}catch(e){}}
 function _saveProj(){try{localStorage.setItem('__gj_proj__',JSON.stringify(_MEM.projects));localStorage.setItem('__gj_pt__',JSON.stringify(_MEM.projectTasks||{}));}catch(e){}}
 function _wklabel(ds){
@@ -718,7 +721,22 @@ function MatchPage({profile, onGoProfile}) {
         ),
         e('div',{className:'btn-row'},
           e('button',{className:'btn btn-s',onClick:()=>setSel(null)},'稍后再看'),
-          e('button',{className:'btn btn-p'},'立即申请')
+          e('button',{className:'btn btn-p',onClick:()=>{
+            if(!_MEM.applications)_MEM.applications=[];
+            var already = _MEM.applications.some(function(a){return a.jobId===sel.id && a.workerName===(profile&&profile.name||'工人');});
+            if(!already){
+              _MEM.applications.push({
+                id:Date.now(), jobId:sel.id, companyName:sel.company,
+                jobTitle:sel.title, workerName:(profile&&profile.name)||'工人',
+                workerPhone:(profile&&profile.phone)||'', workerEmail:(profile&&profile.email)||'',
+                workerType:(profile&&profile.types&&profile.types[0])||'',
+                status:'pending', appliedAt:new Date().toISOString().slice(0,10)
+              });
+              _saveApps();
+            }
+            alert(already?'您已申请过该职位':'✅ 申请已提交，等待公司回复');
+            setSel(null);
+          }},'立即申请')
         )
       )
     )
@@ -1867,10 +1885,13 @@ function WorkerMgmtPage() {
       )
     ),
     e('div',{className:'wm-list'},
-      e('button',{className:'wm-add-btn',onClick:()=>{
-        setForm({name:'',phone:'',email:'',type:'做墙铁',status:'probation',pay:'',payUnit:'时',joined:new Date().toISOString().slice(0,10),abn:'',address:'',emergency:'',notes:'',gender:'男',age:''});
-        setView('add');
-      }},'＋ 新增工人'),
+      e('div',{style:{display:'flex',gap:8,marginBottom:0}},
+        e('button',{className:'wm-add-btn',style:{flex:1},onClick:()=>{setView('lookup');}},'📱 添加工人（手机号/账号）'),
+        e('button',{className:'wm-add-btn',style:{flex:1},onClick:()=>{
+          setForm({name:'',phone:'',email:'',type:'做墙铁',status:'probation',pay:'',payUnit:'时',joined:new Date().toISOString().slice(0,10),abn:'',address:'',emergency:'',notes:'',gender:'男',age:''});
+          setView('add');
+        }},'📝 手动填写')
+      ),
       filtered.length===0&&e('div',{style:{textAlign:'center',padding:'30px 0',color:'var(--sub)',fontSize:13}},'暂无工人'),
       filtered.map(w=>{
         const st = getStatus(w.status);
@@ -1936,6 +1957,107 @@ function WorkerMgmtPage() {
           onClick:()=>{setForm({...w});setView('edit');}},'✏️ 编辑信息'),
         e('button',{style:{padding:'11px 14px',borderRadius:9,border:'none',background:'#fff0ec',color:'var(--r)',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"},
           onClick:()=>{if(confirm('确认删除该工人？')){saveRoster(roster.filter(x=>x.id!==w.id));setView('list');}}},'删除')
+      )
+    );
+  }
+
+  /* ── Phone Lookup ── */
+  if(view==='lookup') {
+    const [query, setQuery] = useState('');
+    const [found, setFound] = useState(null);
+    const [searched, setSearched] = useState(false);
+    const doSearch = () => {
+      setSearched(true);
+      var match = (_MEM.users||[]).find(function(u){
+        return u.phone===query || u.name===query || u.email===query;
+      });
+      setFound(match||null);
+    };
+    return e('div',{className:'page'},
+      e('style',null,WCSS),
+      e('div',{style:{display:'flex',alignItems:'center',gap:10,padding:'14px 16px 0'}},
+        e('button',{style:{background:'none',border:'none',fontSize:22,cursor:'pointer',color:'var(--sub)'},onClick:()=>setView('list')},'←'),
+        e('div',{style:{fontSize:16,fontWeight:900}},'添加工人')
+      ),
+      e('div',{style:{padding:'14px 16px'}},
+        e('div',{style:{fontSize:12,color:'var(--sub)',marginBottom:12,lineHeight:1.6}},'输入工人在工匠通上注册的手机号或账号，即可快速添加到工人管理列表。'),
+        e('div',{style:{display:'flex',gap:8}},
+          e('input',{className:'wf-in',style:{flex:1,marginBottom:0},placeholder:'手机号 / 账号名',value:query,onChange:ev=>setQuery(ev.target.value),
+            onKeyDown:ev=>{if(ev.key==='Enter')doSearch();}}),
+          e('button',{style:{padding:'9px 16px',borderRadius:7,border:'none',background:'var(--b)',color:'#fff',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"},onClick:doSearch},'查找')
+        ),
+        searched && !found && e('div',{style:{marginTop:16,padding:'14px',background:'#fff0ec',borderRadius:9,fontSize:12,color:'var(--r)',textAlign:'center'}},'未找到该用户，请确认手机号/账号是否正确'),
+        found && e('div',{style:{marginTop:16,background:'var(--sur)',borderRadius:11,border:'1px solid var(--bd)',overflow:'hidden'}},
+          e('div',{style:{padding:'14px',display:'flex',alignItems:'center',gap:12}},
+            e('div',{style:{width:46,height:46,borderRadius:'50%',background:'var(--b)',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,fontSize:20}},found.name[0]),
+            e('div',null,
+              e('div',{style:{fontSize:14,fontWeight:700}},found.name),
+              e('div',{style:{fontSize:11,color:'var(--sub)',marginTop:2}},found.phone+(found.email?' · '+found.email:'')),
+              e('div',{style:{fontSize:11,color:'var(--sub)',marginTop:1}},(found.profile&&found.profile.types&&found.profile.types.join('·'))||found.role==='worker'?'工人':'—')
+            )
+          ),
+          e('button',{
+            style:{width:'100%',padding:'11px',border:'none',background:'var(--g)',color:'#fff',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"},
+            onClick:()=>{
+              var already = roster.some(function(w){return w.phone===found.phone||w.name===found.name;});
+              if(already){alert('该工人已在名单中');return;}
+              var prof = found.profile||{};
+              var newW = {
+                id:Date.now(), name:found.name, phone:found.phone||'', email:found.email||'',
+                type:(prof.types&&prof.types[0])||'杂工', status:'probation',
+                pay:prof.payExpect||40, payUnit:prof.payUnit||'时',
+                joined:new Date().toISOString().slice(0,10),
+                abn:'', address:prof.address||'', emergency:prof.emergency||'',
+                notes:'', gender:prof.gender||'', age:prof.age||''
+              };
+              saveRoster([...roster,newW]);
+              setView('list');
+            }
+          },'✅ 添加到工人管理')
+        )
+      ),
+      e('div',{style:{padding:'0 16px'}},
+        e('div',{style:{fontSize:11,fontWeight:700,color:'var(--sub)',letterSpacing:1,textTransform:'uppercase',marginBottom:10}},'📥 待处理申请'),
+        (_MEM.applications||[]).filter(function(a){return a.status==='pending';}).length===0
+          ? e('div',{style:{fontSize:12,color:'var(--sub)',padding:'8px 0'}},'暂无待处理申请')
+          : (_MEM.applications||[]).filter(function(a){return a.status==='pending';}).map(function(a){
+            return e('div',{key:a.id,style:{background:'var(--sur)',borderRadius:11,border:'1px solid var(--bd)',marginBottom:8,overflow:'hidden'}},
+              e('div',{style:{padding:'12px 14px',display:'flex',alignItems:'center',gap:10}},
+                e('div',{style:{width:38,height:38,borderRadius:'50%',background:'#f5a623',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,fontSize:16}},a.workerName[0]),
+                e('div',{style:{flex:1}},
+                  e('div',{style:{fontSize:13,fontWeight:700}},a.workerName),
+                  e('div',{style:{fontSize:11,color:'var(--sub)',marginTop:2}},a.jobTitle+' · '+a.appliedAt),
+                  a.workerPhone&&e('div',{style:{fontSize:11,color:'var(--sub)'}},'📱 '+a.workerPhone)
+                )
+              ),
+              e('div',{style:{display:'flex',borderTop:'1px solid var(--bd)'}},
+                e('button',{
+                  style:{flex:1,padding:10,border:'none',borderRight:'1px solid var(--bd)',background:'#e8f5ee',color:'var(--g)',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"},
+                  onClick:()=>{
+                    var already = roster.some(function(w){return w.phone===a.workerPhone||w.name===a.workerName;});
+                    if(!already){
+                      saveRoster([...roster,{
+                        id:Date.now(),name:a.workerName,phone:a.workerPhone||'',email:a.workerEmail||'',
+                        type:a.workerType||'杂工',status:'probation',pay:40,payUnit:'时',
+                        joined:new Date().toISOString().slice(0,10),abn:'',address:'',emergency:'',notes:'',gender:'',age:''
+                      }]);
+                    }
+                    _MEM.applications=(_MEM.applications||[]).map(function(x){return x.id===a.id?{...x,status:'accepted'}:x;});
+                    _saveApps();
+                    setView('list');
+                  }
+                },'✅ 录取'),
+                e('button',{
+                  style:{flex:1,padding:10,border:'none',background:'#fff0ec',color:'var(--r)',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"},
+                  onClick:()=>{
+                    _MEM.applications=(_MEM.applications||[]).map(function(x){return x.id===a.id?{...x,status:'rejected'}:x;});
+                    _saveApps();
+                    setRoster([...roster]);
+                  }
+                },'❌ 拒绝')
+              )
+            );
+          })
       )
     );
   }
