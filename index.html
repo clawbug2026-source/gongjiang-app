@@ -1046,6 +1046,93 @@ function WorkerDiary() {
   );
 }
 
+function ProjForm({isEdit, projForm, setProjForm, onCancel, onSave, COLORS, ALL_WORKERS}) {
+  const [addrSuggestions, setAddrSuggestions] = useState([]);
+  const [addrLoading, setAddrLoading] = useState(false);
+  const [showSugg, setShowSugg] = useState(false);
+  // Local form state to prevent lag
+  const [local, setLocal] = useState(projForm);
+  const setF = (k,v) => setLocal(p=>({...p,[k]:v}));
+
+  // Debounce address search
+  const addrTimer = useRef(null);
+  const searchAddr = (q) => {
+    if(addrTimer.current) clearTimeout(addrTimer.current);
+    if(!q || q.length < 3) { setAddrSuggestions([]); setShowSugg(false); return; }
+    addrTimer.current = setTimeout(function(){
+      setAddrLoading(true);
+      fetch('https://nominatim.openstreetmap.org/search?format=json&q='+encodeURIComponent(q)+'&limit=5&accept-language=zh')
+        .then(function(r){return r.json();})
+        .then(function(data){
+          setAddrLoading(false);
+          var suggestions = (data||[]).map(function(d){
+            return {
+              display: d.display_name.split(',').slice(0,3).join(','),
+              full: d.display_name
+            };
+          });
+          setAddrSuggestions(suggestions);
+          setShowSugg(suggestions.length > 0);
+        })
+        .catch(function(){ setAddrLoading(false); });
+    }, 400);
+  };
+
+  return e('div',{className:'pj-form'},
+    e('div',{className:'pjf-title'},isEdit?'✏️ 修改项目信息':'➕ 新增项目'),
+    e('input',{className:'pjf-in',placeholder:'项目名称 *',value:local.name||'',
+      onChange:ev=>setF('name',ev.target.value)}),
+    e('div',{style:{position:'relative',marginBottom:8}},
+      e('input',{className:'pjf-in',style:{marginBottom:0},placeholder:'工地地址 * （开始输入自动搜索）',
+        value:local.site||'',
+        onChange:ev=>{setF('site',ev.target.value);searchAddr(ev.target.value);},
+        onBlur:()=>setTimeout(function(){setShowSugg(false);},200)
+      }),
+      addrLoading&&e('div',{style:{position:'absolute',right:10,top:10,fontSize:11,color:'var(--sub)'}},'🔍'),
+      showSugg&&addrSuggestions.length>0&&e('div',{style:{
+        position:'absolute',top:'100%',left:0,right:0,background:'var(--sur)',
+        border:'1px solid var(--bd)',borderRadius:8,zIndex:99,boxShadow:'var(--sh)',
+        maxHeight:200,overflowY:'auto'
+      }},
+        addrSuggestions.map(function(s,i){
+          return e('div',{key:i,
+            onMouseDown:function(ev){ev.preventDefault();setF('site',s.display);setShowSugg(false);},
+            style:{padding:'9px 12px',borderBottom:'1px solid var(--bd)',fontSize:12,cursor:'pointer',
+                   color:'var(--tx)',lineHeight:1.4,transition:'background 0.1s'}},
+            s.display
+          );
+        })
+      )
+    ),
+    e('input',{className:'pjf-in',placeholder:'项目描述（选填）',value:local.desc||'',
+      onChange:ev=>setF('desc',ev.target.value)}),
+    e('span',{className:'pjf-label'},'项目颜色'),
+    e('div',{className:'pjf-colors'},
+      COLORS.map(function(c){
+        return e('div',{key:c,className:'pjf-color',onClick:()=>setF('color',c),
+          style:{background:c,border:local.color===c?'3px solid #1a1714':'3px solid transparent'}});
+      })
+    ),
+    e('span',{className:'pjf-label'},'指派工人（可多选）'),
+    e('div',{className:'pjf-workers'},
+      ALL_WORKERS.map(function(w){
+        var sel = (local.workers||[]).includes(w);
+        return e('div',{key:w,className:'pjf-w',
+          onClick:()=>setF('workers',sel?(local.workers||[]).filter(function(x){return x!==w;}):[...(local.workers||[]),w]),
+          style:{background:sel?'var(--b)':'var(--s3)',color:sel?'#fff':'var(--sub)',border:'1px solid '+(sel?'var(--b)':'var(--bd2)')}
+        },w);
+      })
+    ),
+    e('div',{className:'pjf-foot'},
+      e('button',{className:'pjf-cancel',onClick:onCancel},'取消'),
+      e('button',{className:'pjf-ok',onClick:function(){
+        if(!local.name||!local.name.trim()||!local.site||!local.site.trim())return;
+        onSave(local);
+      }},isEdit?'保存修改':'创建项目')
+    )
+  );
+}
+
 function CompanyDiary() {
   const TASK_TYPES = ['做墙铁','做顶铁','Tbar','做木板','做外墙铁','做外墙板','打胶','铺棉','钉板','抹灰','蹭灰','杂工','管工'];
   const ALL_WORKERS = ['张建国','刘大明','王建华','陈师傅','李师傅','赵师傅'];
@@ -1110,40 +1197,7 @@ function CompanyDiary() {
   `;
 
   /* ── Project Form ── */
-  const ProjForm = ({isEdit}) => e('div',{className:'pj-form'},
-    e('div',{className:'pjf-title'},isEdit?'✏️ 修改项目信息':'➕ 新增项目'),
-    e('input',{className:'pjf-in',placeholder:'项目名称 *',value:projForm.name,
-      onChange:ev=>setProjForm(p=>({...p,name:ev.target.value}))}),
-    e('input',{className:'pjf-in',placeholder:'工地地址 *',value:projForm.site,
-      onChange:ev=>setProjForm(p=>({...p,site:ev.target.value}))}),
-    e('input',{className:'pjf-in',placeholder:'项目描述（选填）',value:projForm.desc,
-      onChange:ev=>setProjForm(p=>({...p,desc:ev.target.value}))}),
-    e('span',{className:'pjf-label'},'项目颜色'),
-    e('div',{className:'pjf-colors'},
-      COLORS.map(c=>e('div',{key:c,className:'pjf-color',onClick:()=>setProjForm(p=>({...p,color:c})),
-        style:{background:c,border:projForm.color===c?'3px solid #1a1714':'3px solid transparent'}}))
-    ),
-    e('span',{className:'pjf-label'},'指派工人（可多选）'),
-    e('div',{className:'pjf-workers'},
-      ALL_WORKERS.map(w=>{
-        const sel = projForm.workers.includes(w);
-        return e('div',{key:w,className:'pjf-w',onClick:()=>setProjForm(p=>({...p,workers:sel?p.workers.filter(x=>x!==w):[...p.workers,w]})),
-          style:{background:sel?'var(--b)':'var(--s3)',color:sel?'#fff':'var(--sub)',border:'1px solid '+(sel?'var(--b)':'var(--bd2)')}},w);
-      })
-    ),
-    e('div',{className:'pjf-foot'},
-      e('button',{className:'pjf-cancel',onClick:()=>setView('list')},'取消'),
-      e('button',{className:'pjf-ok',onClick:()=>{
-        if(!projForm.name.trim()||!projForm.site.trim())return;
-        if(isEdit){
-          saveProjects(projects.map(p=>p.id===selProj.id?{...p,...projForm}:p));
-        } else {
-          saveProjects([...projects,{id:Date.now(),status:'active',startDate:new Date().toISOString().slice(0,10),...projForm}]);
-        }
-        setView('list');
-      }},isEdit?'保存修改':'创建项目')
-    )
-  );
+
 
   /* ── List View ── */
   if(view==='list') return e('div',{className:'page'},
@@ -1189,13 +1243,25 @@ function CompanyDiary() {
   );
 
   /* ── Add/Edit Project Form ── */
-  if(view==='addProj'||view==='editProj') return e('div',{className:'page'},
+  if(view==='addProj') return e('div',{className:'page'},
     e('style',null,PCSS),
     e('div',{style:{display:'flex',alignItems:'center',gap:10,padding:'14px 16px 0'}},
       e('button',{style:{background:'none',border:'none',fontSize:22,cursor:'pointer',color:'var(--sub)'},onClick:()=>setView('list')},'←'),
-      e('div',{style:{fontSize:16,fontWeight:900}},view==='editProj'?'修改项目信息':'新增项目')
+      e('div',{style:{fontSize:16,fontWeight:900}},'新增项目')
     ),
-    e(ProjForm,{isEdit:view==='editProj'})
+    e(ProjForm,{isEdit:false,projForm,setProjForm,COLORS,ALL_WORKERS,
+      onCancel:()=>setView('list'),
+      onSave:function(f){saveProjects([...projects,{id:Date.now(),status:'active',startDate:new Date().toISOString().slice(0,10),...f}]);setView('list');}})
+  );
+  if(view==='editProj') return e('div',{className:'page'},
+    e('style',null,PCSS),
+    e('div',{style:{display:'flex',alignItems:'center',gap:10,padding:'14px 16px 0'}},
+      e('button',{style:{background:'none',border:'none',fontSize:22,cursor:'pointer',color:'var(--sub)'},onClick:()=>setView('list')},'←'),
+      e('div',{style:{fontSize:16,fontWeight:900}},'修改项目信息')
+    ),
+    e(ProjForm,{isEdit:true,projForm,setProjForm,COLORS,ALL_WORKERS,
+      onCancel:()=>setView('list'),
+      onSave:function(f){saveProjects(projects.map(p=>p.id===selProj.id?{...p,...f}:p));setView('list');}})
   );
 
   /* ── Detail View ── */
@@ -1217,7 +1283,7 @@ function CompanyDiary() {
       ),
       e('div',{style:{display:'flex',gap:8,padding:'10px 16px 0'}},
         e('button',{style:{flex:1,padding:8,borderRadius:8,border:'none',background:'#e8f0ff',color:'var(--b)',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif"},
-          onClick:()=>{setProjForm({name:proj.name,site:proj.site,desc:proj.desc||'',color:proj.color,workers:proj.workers||[]});setView('editProj');}},'✏️ 修改项目信息'),
+          onClick:()=>{setProjForm({name:proj.name,site:proj.site||'',desc:proj.desc||'',color:proj.color,workers:proj.workers||[]});setView('editProj');}},'✏️ 修改项目信息'),
         e('button',{style:{padding:'8px 12px',borderRadius:8,border:'none',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:"'Noto Sans SC',sans-serif",
           background:proj.status==='active'?'#fff0ec':'#e8f5ee',color:proj.status==='active'?'var(--r)':'var(--g)'},
           onClick:()=>saveProjects(projects.map(p=>p.id===proj.id?{...p,status:p.status==='active'?'done':'active'}:p))},
