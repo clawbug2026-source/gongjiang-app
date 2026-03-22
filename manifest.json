@@ -9,10 +9,7 @@
   "theme_color": "#1a1714",
   "background_color": "#1a1714",
   "lang": "zh-CN",
-  "categories": [
-    "business",
-    "productivity"
-  ],
+  "categories": ["business", "productivity"],
   "icons": [
     {
       "src": "icon-192.png",
